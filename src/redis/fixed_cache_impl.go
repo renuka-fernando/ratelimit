@@ -69,7 +69,8 @@ func (this *fixedRateLimitCacheImpl) DoLimit(
 				isOverLimitWithLocalCache[i] = true
 			}
 
-			continue
+			continue // TODO: (renuka) we have to break here, but still this will increment other keys by one, but we can't rely on local cache (i.e. two rate limit services)
+			// TODO: (renuka) Otherwise we can keep this as break and decrease key by one (except this key) if rate limited <- this is optimized than (read key, check key then increment key)
 		}
 
 		logger.Debugf("looking up cache key: %s", cacheKey.Key)

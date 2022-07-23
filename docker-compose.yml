@@ -36,7 +36,7 @@ services:
       - binary:/usr/local/bin/
 
   ratelimit:
-    image: alpine:3.6
+    image: alpine:3.15.2
     command: >
       sh -c "until test -f /usr/local/bin/ratelimit; do sleep 5; done; /usr/local/bin/ratelimit"
     ports:

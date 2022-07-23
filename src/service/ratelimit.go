@@ -234,6 +234,7 @@ func (this *service) shouldRateLimitWorker(
 	}
 
 	response.OverallCode = finalCode
+	logger.Debugf("response %v", response)
 	return response
 }
 

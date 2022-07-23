@@ -1,42 +1,71 @@
 ---
-domain: rl
+domain: rl # we can have org level domains, then we have to configure router level rate limit filters
 descriptors:
-  - key: category
-    value: account
+  - key: org
+    value: John
+    descriptors:
+      - key: api
+        descriptors:
+          - key: policy
+            value: 5PerMin
+            rate_limit:
+              unit: minute
+              requests_per_unit: 5
+      - key: res
+        descriptors:
+          - key: policy
+            value: 3PerMin
+            rate_limit:
+              unit: minute
+              requests_per_unit: 3
+      - key: header_match
+        descriptors:
+          - key: resource
+            descriptors:
+              - key: policy
+                value: 1PerMin
+                rate_limit:
+                  unit: minute
+                  requests_per_unit: 1
+              - key: policy
+                value: 2PerMin
+                rate_limit:
+                  unit: minute
+                  requests_per_unit: 2
+
+  - key: k1
+    value: v1
     rate_limit:
-      replaces:
-        - name: bkthomps
-        - name: fake_name
       unit: minute
-      requests_per_unit: 4
+      requests_per_unit: 2
+    descriptors:
+      - key: k2
+        # value: v1
+        rate_limit:
+          unit: minute
+          requests_per_unit: 12
+  - key: k2
+    # value: v1
+    rate_limit:
+      unit: minute
+      requests_per_unit: 16
   - key: source_cluster
     value: proxy
     descriptors:
-      - key: destination_cluster
-        value: bkthomps
-        rate_limit:
-          replaces:
-            - name: bkthomps
-          unit: minute
-          requests_per_unit: 2
       - key: destination_cluster
         value: mock
         rate_limit:
           unit: minute
           requests_per_unit: 1
-      - key: destination_cluster
-        value: override
+  - key: cl
+    rate_limit:
+      unit: minute
+      requests_per_unit: 2
+    descriptors:
+      - key: bar
         rate_limit:
-          replaces:
-            - name: banned_limit
           unit: minute
-          requests_per_unit: 2
-      - key: destination_cluster
-        value: fake
-        rate_limit:
-          name: fake_name
-          unit: minute
-          requests_per_unit: 2
+          requests_per_unit: 5
   - key: foo
     rate_limit:
       unit: minute
@@ -47,15 +76,8 @@ descriptors:
           unit: minute
           requests_per_unit: 3
       - key: bar
-        value: bkthomps
-        rate_limit:
-          name: bkthomps
-          unit: minute
-          requests_per_unit: 1
-      - key: bar
         value: banned
         rate_limit:
-          name: banned_limit
           unit: minute
           requests_per_unit: 0
       - key: baz

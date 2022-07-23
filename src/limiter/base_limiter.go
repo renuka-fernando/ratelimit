@@ -63,7 +63,8 @@ func (this *BaseRateLimiter) GenerateCacheKeys(request *pb.RateLimitRequest,
 func (this *BaseRateLimiter) IsOverLimitWithLocalCache(key string) bool {
 	if this.localCache != nil {
 		// Get returns the value or not found error.
-		_, err := this.localCache.Get([]byte(key))
+		val, err := this.localCache.Get([]byte(key))
+		logger.Debugf("local cache val: %v", val)
 		if err == nil {
 			return true
 		}
@@ -108,6 +109,7 @@ func (this *BaseRateLimiter) GetResponseDescriptorStatus(key string, limitInfo *
 				// similar to mongo_1h, mongo_2h, etc. In the hour 1 (0h0m - 0h59m), the cache key is mongo_1h, we start
 				// to get ratelimited in the 50th minute, the ttl of local_cache will be set as 1 hour(0h50m-1h49m).
 				// In the time of 1h1m, since the cache key becomes different (mongo_2h), it won't get ratelimited.
+				logger.Debugf("Renuka: set local cache key: %v, val: %v, TTL: ", key, []byte{}, int(utils.UnitToDivider(limitInfo.limit.Limit.Unit)))
 				err := this.localCache.Set([]byte(key), []byte{}, int(utils.UnitToDivider(limitInfo.limit.Limit.Unit)))
 				if err != nil {
 					logger.Errorf("Failing to set local cache key: %s", key)

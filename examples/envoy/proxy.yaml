@@ -19,7 +19,7 @@ static_resources:
               - endpoint:
                   address:
                     socket_address:
-                      address: ratelimit
+                      address: host.docker.internal # ratelimit
                       port_value: 8081
     - name: mock
       connect_timeout: 1s
@@ -47,14 +47,40 @@ static_resources:
                 codec_type: AUTO
                 stat_prefix: ingress
                 http_filters:
+                  # - name: envoy.filters.http.local_ratelimit
+                  #   typed_config:
+                  #     "@type": type.googleapis.com/envoy.extensions.filters.http.local_ratelimit.v3.LocalRateLimit
+                  #     stat_prefix: http_local_rate_limiter
+                  #     token_bucket:
+                  #       max_tokens: 6
+                  #       tokens_per_fill: 6
+                  #       fill_interval: 60s
+                  #     filter_enabled:
+                  #       runtime_key: local_rate_limit_enabled
+                  #       default_value:
+                  #         numerator: 100
+                  #         denominator: HUNDRED
+                  #     filter_enforced:
+                  #       runtime_key: local_rate_limit_enforced
+                  #       default_value:
+                  #         numerator: 100
+                  #         denominator: HUNDRED
+                  #     response_headers_to_add:
+                  #       - append: false
+                  #         header:
+                  #           key: x-local-rate-limit
+                  #           value: 'true'
+                  #     local_rate_limit_per_downstream_connection: false
                   - name: envoy.filters.http.ratelimit
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimit
                       domain: rl
                       request_type: external
+                      timeout:
+                        seconds: 10
                       stage: 0
                       rate_limited_as_resource_exhausted: true
-                      failure_mode_deny: false
+                      failure_mode_deny: true
                       enable_x_ratelimit_headers: DRAFT_VERSION_03
                       rate_limit_service:
                         grpc_service:
@@ -89,63 +115,130 @@ static_resources:
                                       header_name: "foo"
                                       descriptor_key: "foo"
                         - match:
+                            prefix: /renuka
+                          route:
+                            cluster: mock
+                            rate_limits:
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "k1"
+                                      descriptor_value: "v1"
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "k2"
+                                      descriptor_value: "v2"
+                                      
+                        - match:
                             prefix: /twoheader
                           route:
                             cluster: mock
                             rate_limits:
                               - actions:
                                   - request_headers:
-                                      header_name: "foo"
-                                      descriptor_key: "foo"
+                                      header_name: "content-length"
+                                      descriptor_key: "foo1"
                                   - request_headers:
                                       header_name: "bar"
-                                      descriptor_key: "bar"
-                              - actions:
-                                  - request_headers:
-                                      header_name: "foo"
-                                      descriptor_key: "foo"
-                                  - request_headers:
-                                      header_name: "baz"
-                                      descriptor_key: "baz"
+                                      descriptor_key: "bar1"
+                              # - actions:
+                              #     - request_headers:
+                              #         header_name: "foo"
+                              #         descriptor_key: "foo"
+                              #     - request_headers:
+                              #         header_name: "baz"
+                              #         descriptor_key: "baz"
                         - match:
-                            prefix: /fourheader
+                            prefix: /sms/v1/api-level
                           route:
                             cluster: mock
                             rate_limits:
                               - actions:
-                                  - request_headers:
-                                      header_name: "foo"
-                                      descriptor_key: "foo"
-                                  - request_headers:
-                                      header_name: "bar"
-                                      descriptor_key: "bar"
-                              - actions:
-                                  - request_headers:
-                                      header_name: "source_cluster"
-                                      descriptor_key: "source_cluster"
-                                  - request_headers:
-                                      header_name: "destination_cluster"
-                                      descriptor_key: "destination_cluster"
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - generic_key:
+                                      descriptor_key: "api"
+                                      descriptor_value: "/sms/v1"
+                                  - generic_key:
+                                      descriptor_key: "policy"
+                                      descriptor_value: "5PerMin"
                         - match:
-                            prefix: /fiveheader
+                            prefix: /sms/v1/resource-level
                           route:
                             cluster: mock
                             rate_limits:
                               - actions:
-                                  - request_headers:
-                                      header_name: "foo"
-                                      descriptor_key: "foo"
-                                  - request_headers:
-                                      header_name: "bar"
-                                      descriptor_key: "bar"
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - generic_key:
+                                      descriptor_key: "res"
+                                      descriptor_value: "/sms/v1/resource-level"
+                                  - generic_key:
+                                      descriptor_key: "policy"
+                                      descriptor_value: "3PerMin"
                               - actions:
-                                  - request_headers:
-                                      header_name: "source_cluster"
-                                      descriptor_key: "source_cluster"
-                                  - request_headers:
-                                      header_name: "destination_cluster"
-                                      descriptor_key: "destination_cluster"
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - generic_key:
+                                      descriptor_key: "api"
+                                      descriptor_value: "/sms/v1"
+                                  - generic_key:
+                                      descriptor_key: "policy"
+                                      descriptor_value: "5PerMin"
+                        - match:
+                            prefix: /sms/v1/method-level
+                          route:
+                            cluster: mock
+                            rate_limits:
                               - actions:
-                                  - request_headers:
-                                      header_name: "category"
-                                      descriptor_key: "category"
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - header_value_match: # we do not want this if we have method level routes
+                                      descriptor_value: "PUT"
+                                      headers:
+                                        name: ":method"
+                                        exact_match: "PUT"
+                                  - generic_key:
+                                      descriptor_key: "resource"
+                                      descriptor_value: "/sms/v1/resource-level"
+                                  - generic_key:
+                                      descriptor_key: "policy"
+                                      descriptor_value: "2PerMin"
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - header_value_match: # we do not want this if we have method level routes
+                                      descriptor_value: "POST"
+                                      headers:
+                                        name: ":method"
+                                        exact_match: "POST"
+                                  - generic_key:
+                                      descriptor_key: "resource"
+                                      descriptor_value: "/sms/v1/resource-level"
+                                  - generic_key:
+                                      descriptor_key: "policy"
+                                      descriptor_value: "1PerMin"
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - generic_key:
+                                      descriptor_key: "res"
+                                      descriptor_value: "/sms/v1/resource-level"
+                                  - generic_key:
+                                      descriptor_key: "policy"
+                                      descriptor_value: "3PerMin"
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - generic_key:
+                                      descriptor_key: "api"
+                                      descriptor_value: "/sms/v1"
+                                  - generic_key:
+                                      descriptor_key: "policy"
+                                      descriptor_value: "5PerMin"
