@@ -1,6 +1,31 @@
+# CC-DEV
+
+## Run Setup
+
+Change dir to source root.
+
+- All setup except rate limit service and ext-auth service
+  ```sh
+  docker-compose -f docker-compose-example.yml up --remove-orphans -d; docker-compose logs -f envoy-proxy
+  ```
+
+- Rate limit service
+  ```sh
+  go run src/service_cmd/main.go
+  ```
+
+- Ext-Auth service
+  ```sh
+  go ext-auth-server/run main/main.go
+  ```
+
+------------
+
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
+- [CC-DEV](#cc-dev)
+  - [Run Setup](#run-setup)
 - [Overview](#overview)
 - [Docker Image](#docker-image)
 - [Supported Envoy APIs](#supported-envoy-apis)

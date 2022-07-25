@@ -11,6 +11,16 @@ descriptors:
             rate_limit:
               unit: minute
               requests_per_unit: 5
+          - key: x-wso2-ratelimit-policy
+            value: 10PerMin
+            rate_limit:
+              unit: minute
+              requests_per_unit: 10
+          - key: x-wso2-ratelimit-policy
+            value: 3PerMin
+            rate_limit:
+              unit: minute
+              requests_per_unit: 3
       - key: res
         descriptors:
           - key: policy
@@ -32,6 +42,7 @@ descriptors:
                 rate_limit:
                   unit: minute
                   requests_per_unit: 2
+
 
   - key: k1
     value: v1

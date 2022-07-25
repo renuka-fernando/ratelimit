@@ -6,6 +6,23 @@ admin:
       port_value: 8001
 static_resources:
   clusters:
+    - name: ext_authz-grpc-service
+      type: STRICT_DNS
+      lb_policy: ROUND_ROBIN
+      typed_extension_protocol_options:
+        envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+          "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+          explicit_http_config:
+            http2_protocol_options: {}
+      load_assignment:
+        cluster_name: ext_authz-grpc-service
+        endpoints:
+        - lb_endpoints:
+          - endpoint:
+              address:
+                socket_address:
+                  address: host.docker.internal
+                  port_value: 9001
     - name: ratelimit
       type: STRICT_DNS
       connect_timeout: 1s
@@ -47,6 +64,14 @@ static_resources:
                 codec_type: AUTO
                 stat_prefix: ingress
                 http_filters:
+                  - name: envoy.filters.http.ext_authz
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+                      grpc_service:
+                        envoy_grpc:
+                          cluster_name: ext_authz-grpc-service
+                        timeout: 0.250s
+                      transport_api_version: V3
                   # - name: envoy.filters.http.local_ratelimit
                   #   typed_config:
                   #     "@type": type.googleapis.com/envoy.extensions.filters.http.local_ratelimit.v3.LocalRateLimit
@@ -242,3 +267,32 @@ static_resources:
                                   - generic_key:
                                       descriptor_key: "policy"
                                       descriptor_value: "5PerMin"
+                        - match:
+                            prefix: /hotels/v1/ip-range
+                          route:
+                            cluster: mock
+                            rate_limits:
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - generic_key:
+                                      descriptor_key: "api"
+                                      descriptor_value: "/hotels/v1"
+                                  - request_headers:
+                                      descriptor_key: "x-wso2-ratelimit-policy"
+                                      header_name: "x-wso2-ratelimit-policy"
+                                      # skip_if_absent: true
+                              # - actions:
+                              #     - generic_key:
+                              #         descriptor_key: "org"
+                              #         descriptor_value: "John"
+                              #     - metadata:
+                              #         descriptor_key: "ip-range"
+                              #         metadata_key:
+                              #           key:
+                              #           path:
+                              #             key: 
+                              #     - generic_key:
+                              #         descriptor_key: "policy"
+                              #         descriptor_value: "5PerMin"
