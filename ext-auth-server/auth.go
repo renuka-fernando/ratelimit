@@ -1,8 +1,10 @@
 package authsample
 
 import (
+	"bytes"
 	"context"
 	"log"
+	"net"
 	"strings"
 
 	envoy_api_v3_core "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
@@ -28,8 +30,16 @@ func New(users Users) envoy_service_auth_v3.AuthorizationServer {
 func (s *server) Check(
 	ctx context.Context,
 	req *envoy_service_auth_v3.CheckRequest) (*envoy_service_auth_v3.CheckResponse, error) {
+
+	log.Printf("Request size: %d\n", req.Attributes.Request.Http.Size)
 	authorization := req.Attributes.Request.Http.Headers["authorization"]
 	log.Println(authorization)
+
+	xForwardedFor := req.Attributes.Request.Http.Headers["x-forwarded-for"]
+	xRateLimitPolicy := "3PerMin"
+	if checkRange(xForwardedFor) {
+		xRateLimitPolicy = "10PerMin"
+	}
 
 	extracted := strings.Fields(authorization)
 	if len(extracted) == 2 && extracted[0] == "Bearer" {
@@ -48,12 +58,30 @@ func (s *server) Check(
 									Value: user,
 								},
 							},
+							{
+								Append: &wrappers.BoolValue{Value: false},
+								Header: &envoy_api_v3_core.HeaderValue{
+									Key:   "x-wso2-ratelimit-policy",
+									Value: xRateLimitPolicy,
+								},
+							},
 						},
 					},
 				},
 				Status: &status.Status{
 					Code: int32(code.Code_OK),
 				},
+				// DynamicMetadata: &structpb.Struct{
+				// 	Fields: map[string]*structpb.Value{
+				// 		"rate-limit": {Kind: &structpb.Value_StructValue{
+				// 			StructValue: &structpb.Struct{
+				// 				Fields: map[string]*structpb.Value{
+				// 					"foo": {Kind: &structpb.Value_StringValue{StringValue: "bar"}},
+				// 				},
+				// 			},
+				// 		}},
+				// 	},
+				// },
 			}, nil
 		}
 	}
@@ -63,4 +91,21 @@ func (s *server) Check(
 			Code: int32(code.Code_PERMISSION_DENIED),
 		},
 	}, nil
+}
+
+func checkRange(ip string) bool {
+	var ip1 = net.ParseIP("216.14.49.184")
+	var ip2 = net.ParseIP("216.14.49.191")
+
+	trial := net.ParseIP(ip)
+	if trial.To4() == nil {
+		log.Printf("%v is not an IPv4 address\n", trial)
+		return false
+	}
+	if bytes.Compare(trial, ip1) >= 0 && bytes.Compare(trial, ip2) <= 0 {
+		log.Printf("%v is between %v and %v\n", trial, ip1, ip2)
+		return true
+	}
+	log.Printf("%v is NOT between %v and %v\n", trial, ip1, ip2)
+	return false
 }
