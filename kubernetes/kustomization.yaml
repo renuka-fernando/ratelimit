@@ -1,0 +1,39 @@
+configMapGenerator:
+  - name: envoy-yaml
+    behavior: create
+    files:
+      - envoy/envoy-config.yaml
+  - name: ratelimit-config
+    behavior: create
+    files:
+      - ratelimit/ratelimit-config.yaml
+  - name: users-json
+    behavior: create
+    files:
+      - ext-auth-service/users.json
+  - name: mock-envoy-yaml
+    behavior: create
+    files:
+      - mock-backend/mock-config.yaml
+
+resources:
+  # cms
+  - envoy/envoy-deployment.yaml # TODO: do not need prom/statsd-exporter:v0.18.0
+  - ratelimit/ratelimit-deployment.yaml
+  - ext-auth-service/ext-auth-deployment.yaml
+  - mock-backend/mock-backend-deployment.yaml
+  # services
+  - envoy/envoy-service.yaml
+  - ratelimit/ratelimit-service.yaml
+  - ext-auth-service/ext-auth-service.yaml
+  - mock-backend/mock-backend-service.yaml
+
+replicas:
+  - name: cc-envoy
+    count: 1
+  - name: cc-ext-auth
+    count: 1
+  - name: mock-backend
+    count: 1
+  - name: ratelimit
+    count: 1

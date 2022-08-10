@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"strings"
+	"time"
 
 	envoy_api_v3_core "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_service_auth_v3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
@@ -36,9 +37,14 @@ func (s *server) Check(
 	log.Println(authorization)
 
 	xForwardedFor := req.Attributes.Request.Http.Headers["x-forwarded-for"]
-	xRateLimitPolicy := "3PerMin"
+	xRateLimit := "default" // default limit
+	now := time.Now()
 	if checkRange(xForwardedFor) {
-		xRateLimitPolicy = "10PerMin"
+		xRateLimit = "c1"
+	} else if now.Month() == 8 && now.Day() == 4 {
+		xRateLimit = "c2"
+	} else if now.UTC().Hour() > 18 {
+		xRateLimit = "c3"
 	}
 
 	extracted := strings.Fields(authorization)
@@ -61,8 +67,8 @@ func (s *server) Check(
 							{
 								Append: &wrappers.BoolValue{Value: false},
 								Header: &envoy_api_v3_core.HeaderValue{
-									Key:   "x-wso2-ratelimit-policy",
-									Value: xRateLimitPolicy,
+									Key:   "x-wso2-ratelimit-policy", // wso2 specific header
+									Value: xRateLimit,
 								},
 							},
 						},

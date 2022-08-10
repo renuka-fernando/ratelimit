@@ -1,0 +1,171 @@
+---
+domain: rl # we can have org level domains, then we have to configure router level rate limit filters
+descriptors:
+  - key: org
+    value: John
+    descriptors:
+      # API level policy
+      - key: resource # api: /petstore/v1    resource: /petstore/v1/findById
+        descriptors:
+          - key: method # method: [ALL|GET|PUT|POST...] (ALL for API level and resource level)
+            descriptors:
+              - key: policy
+                value: 3PerMin
+                descriptors:
+                  - key: spike # or burst
+                    value: true
+                    rate_limit:
+                      unit: second
+                      requests_per_unit: 1
+                  - key: condition
+                    value: default
+                    rate_limit:
+                      unit: minute
+                      requests_per_unit: 3
+                  - key: condition
+                    value: c1 # we may have to use a UUID instead of C1, C2, ...
+                    rate_limit:
+                      unit: hour
+                      requests_per_unit: 5
+                  - key: condition
+                    value: c2
+                    rate_limit:
+                      unit: minute
+                      requests_per_unit: 10
+
+      # Subscription level
+      - key: subscription # Sends from ext auth service as a header
+        descriptors:
+          - key: policy
+            value: 3PerMin
+            rate_limit:
+              unit: minute
+              requests_per_unit: 3
+          - key: policy
+            value: 5PerMin
+            rate_limit:
+              unit: minute
+              requests_per_unit: 5
+
+      # Application level
+      - key: application # Sends from ext auth service as a header
+        descriptors:
+          - key: policy
+            value: 3PerMin
+            rate_limit:
+              unit: minute
+              requests_per_unit: 3
+
+
+# OLD one
+  - key: org
+    value: JohnOLD
+    descriptors:
+      - key: api
+        descriptors:
+          - key: policy
+            value: 5PerMin
+            rate_limit:
+              unit: minute
+              requests_per_unit: 5
+          - key: x-wso2-ratelimit-policy
+            value: 10PerMin
+            rate_limit:
+              unit: minute
+              requests_per_unit: 10
+          - key: x-wso2-ratelimit-policy
+            value: 3PerMin
+            rate_limit:
+              unit: minute
+              requests_per_unit: 3
+      - key: res
+        descriptors:
+          - key: policy
+            value: 3PerMin
+            rate_limit:
+              unit: minute
+              requests_per_unit: 3
+      - key: header_match
+        descriptors:
+          - key: resource
+            descriptors:
+              - key: policy
+                value: 1PerMin
+                rate_limit:
+                  unit: minute
+                  requests_per_unit: 1
+              - key: policy
+                value: 2PerMin
+                rate_limit:
+                  unit: minute
+                  requests_per_unit: 2
+
+
+  - key: k1
+    value: v1
+    rate_limit:
+      unit: minute
+      requests_per_unit: 2
+    descriptors:
+      - key: k2
+        # value: v1
+        rate_limit:
+          unit: minute
+          requests_per_unit: 12
+  - key: k2
+    # value: v1
+    rate_limit:
+      unit: minute
+      requests_per_unit: 16
+  - key: source_cluster
+    value: proxy
+    descriptors:
+      - key: destination_cluster
+        value: mock
+        rate_limit:
+          unit: minute
+          requests_per_unit: 1
+  - key: cl
+    rate_limit:
+      unit: minute
+      requests_per_unit: 2
+    descriptors:
+      - key: bar
+        rate_limit:
+          unit: minute
+          requests_per_unit: 5
+  - key: foo
+    rate_limit:
+      unit: minute
+      requests_per_unit: 2
+    descriptors:
+      - key: bar
+        rate_limit:
+          unit: minute
+          requests_per_unit: 3
+      - key: bar
+        value: banned
+        rate_limit:
+          unit: minute
+          requests_per_unit: 0
+      - key: baz
+        rate_limit:
+          unit: second
+          requests_per_unit: 1
+      - key: baz
+        value: not-so-shady
+        rate_limit:
+          unit: minute
+          requests_per_unit: 3
+      - key: baz
+        value: shady
+        rate_limit:
+          unit: minute
+          requests_per_unit: 3
+        shadow_mode: true
+      - key: bay
+        rate_limit:
+          unlimited: true
+  - key: qux
+    rate_limit:
+      unlimited: true

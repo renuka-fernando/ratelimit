@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cc-ext-auth
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: cc-ext-auth
+  template:
+    metadata:
+      labels:
+        app: cc-ext-auth
+      annotations: {}
+    spec:
+      containers:
+        - name: cc-ext-auth
+          image: ext-auth-renuka:master
+          imagePullPolicy: IfNotPresent
+          command: []
+          volumeMounts:
+            - mountPath: /etc/users.json
+              subPath: users.json
+              name: users-vol
+          resources:
+            requests:
+              memory: "500Mi"
+              cpu: "500m"
+            limits:
+              memory: "500Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 9001 # gRPC
+      volumes:
+        - name: users-vol
+          configMap:
+            name: users-json
+      restartPolicy: Always

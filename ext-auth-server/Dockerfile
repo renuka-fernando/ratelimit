@@ -1,10 +1,9 @@
-FROM golang:alpine AS builder
+# FROM golang:alpine AS builder
 
-RUN apk --no-cache add make
-COPY . /app
-RUN make -C /app/grpc-service
+# RUN apk --no-cache add make
+# COPY . /app
+# RUN make -C /app/grpc-service
 
-FROM alpine
-
-COPY --from=builder /app/grpc-service/server /app/server
-CMD ["/app/server", "-users", "/etc/users.json"]
+FROM alpine:3.15.4
+COPY server-linux /bin/server
+CMD ["/bin/server", "-users", "/etc/users.json"]

@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cc-envoy
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: cc-envoy
+  template:
+    metadata:
+      labels:
+        app: cc-envoy
+      annotations: {}
+    spec:
+      containers:
+        - name: cc-envoy
+          image: envoyproxy/envoy-alpine:v1.20.3
+          imagePullPolicy: IfNotPresent
+          args:
+            - "--service-node cc-service-node"
+            - "--service-cluster cc-service-cluster"
+            - "--config-path /etc/envoy/envoy.yaml"
+            - "--concurrency 2" # Concurrency
+            - "--mode serve"
+            - "--log-level info"
+          volumeMounts:
+            - mountPath: /etc/envoy/envoy.yaml
+              subPath: envoy-config.yaml
+              name: envoy-yaml-vol
+          resources:
+            requests:
+              memory: "500Mi"
+              cpu: "500m"
+            limits:
+              memory: "500Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 8888 # HTTP port #TODO: HTTP/HTTPS
+            - containerPort: 8001 # Admin port
+          livenessProbe:
+            httpGet:
+              port: 8888
+              path: /ready
+              scheme: HTTP #TODO: HTTP/HTTPS
+            failureThreshold: 30
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              port: 8888
+              path: /ready
+              scheme: HTTP #TODO: HTTP/HTTPS
+            failureThreshold: 30
+            periodSeconds: 5
+      volumes:
+        - name: envoy-yaml-vol
+          configMap:
+            name: envoy-yaml
+      restartPolicy: Always

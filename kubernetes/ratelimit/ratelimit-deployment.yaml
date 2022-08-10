@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ratelimit
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: ratelimit
+  template:
+    metadata:
+      labels:
+        app: ratelimit
+      annotations: {}
+    spec:
+      containers:
+        - name: ratelimit
+          # image: envoyproxy/ratelimit:master
+          image: ratelimit-renuka:master
+          imagePullPolicy: IfNotPresent
+          command:
+            - "/bin/ratelimit"
+          env:
+            - name: USE_STATSD
+              value: "false" # TODO: false
+            - name: LOG_LEVEL
+              value: debug
+            - name: REDIS_SOCKET_TYPE
+              value: tcp
+            - name: REDIS_URL
+              value: redis:6379 # TODO: update service name
+            - name: RUNTIME_ROOT
+              value: /data
+            - name: RUNTIME_SUBDIRECTORY
+              value: ratelimit
+            - name: RUNTIME_WATCH_ROOT
+              value: "false"
+          volumeMounts:
+            - mountPath: /data/ratelimit/config
+              name: ratelimit-config-vol
+          resources:
+            requests:
+              memory: "500Mi"
+              cpu: "500m"
+            limits:
+              memory: "500Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 8081 # gRPC
+            - containerPort: 8080 # HTTP JSON
+            - containerPort: 6070 # debug
+          livenessProbe:
+            httpGet:
+              port: 8080
+              path: /healthcheck
+              scheme: HTTP
+            failureThreshold: 30
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              port: 8080
+              path: /healthcheck
+              scheme: HTTP
+            failureThreshold: 30
+            periodSeconds: 5
+      volumes:
+        - name: ratelimit-config-vol
+          configMap:
+            name: ratelimit-config
+      restartPolicy: Always

@@ -19,6 +19,21 @@ Change dir to source root.
   go ext-auth-server/run main/main.go
   ```
 
+## Test
+
+```sh
+curl localhost:8888/sms/v1/api-level -i -H 'Authorization: Bearer token1'
+curl localhost:8888/sms/v1/resource-level -i -H 'Authorization: Bearer token1'
+curl localhost:8888/sms/v1/method-level -i -H 'Authorization: Bearer token1' -d 'hello'
+curl localhost:8888/hotels/v1/ip-range -i -H 'Authorization: Bearer token1' -H "X-Forwarded-For:216.14.49.185"
+```
+
+## Stop
+
+```sh
+docker-compose -f docker-compose-example.yml down -v
+```
+
 ------------
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
@@ -26,6 +41,8 @@ Change dir to source root.
 
 - [CC-DEV](#cc-dev)
   - [Run Setup](#run-setup)
+  - [Test](#test)
+  - [Stop](#stop)
 - [Overview](#overview)
 - [Docker Image](#docker-image)
 - [Supported Envoy APIs](#supported-envoy-apis)
