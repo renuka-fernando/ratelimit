@@ -16,8 +16,6 @@ spec:
       labels:
         app: redis-cluster
     spec:
-      # hostNetwork: false
-      # enableServiceLinks: false
       securityContext:
         fsGroup: 1001
         runAsUser: 1001
@@ -49,13 +47,13 @@ spec:
           command: ["/bin/bash", "-c"]
           args:
             - |
-              redis-server /etc/redis/redis.conf --requirepass $REDIS_PASSWORD
+              redis-server /etc/redis/redis.conf --requirepass $REDISCLI_AUTH
           env:
             # - name: POD_NAME
             #   valueFrom:
             #     fieldRef:
             #       fieldPath: metadata.name
-            - name: REDIS_PASSWORD
+            - name: REDISCLI_AUTH
               valueFrom:
                 secretKeyRef:
                   name: redis-secret
@@ -65,30 +63,26 @@ spec:
               containerPort: 6379
             - name: tcp-redis-bus
               containerPort: 16379
-          # livenessProbe:
-          #   initialDelaySeconds: 5
-          #   periodSeconds: 5
-          #   # One second longer than command timeout should prevent generation of zombie processes.
-          #   timeoutSeconds: 6
-          #   successThreshold: 1
-          #   failureThreshold: 5
-          #   exec:
-          #     command:
-          #       - sh
-          #       - -c
-          #       - /scripts/ping_liveness_local.sh 5
-          # readinessProbe:
-          #   initialDelaySeconds: 5
-          #   periodSeconds: 5
-          #   # One second longer than command timeout should prevent generation of zombie processes.
-          #   timeoutSeconds: 2
-          #   successThreshold: 1
-          #   failureThreshold: 5
-          #   exec:
-          #     command:
-          #       - sh
-          #       - -c
-          #       - /scripts/ping_readiness_local.sh 1
+          livenessProbe:
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 6
+            successThreshold: 1
+            failureThreshold: 5
+            exec:
+              command:
+                - /scripts/ping_liveness_local.sh
+                - "5"
+          readinessProbe:
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 2
+            successThreshold: 1
+            failureThreshold: 5
+            exec:
+              command:
+                - /scripts/ping_readiness_local.sh
+                - "1"
           resources:
             limits: {}
             requests: {}
@@ -98,10 +92,16 @@ spec:
             - name: redis-config
               mountPath: /etc/redis/redis.conf
               subPath: redis.conf
+            - name: redis-scripts
+              mountPath: /scripts
       volumes:
         - name: redis-config
           configMap:
             name: redis-config
+        - name: redis-scripts
+          configMap:
+            name: redis-scripts
+            defaultMode: 0755
   volumeClaimTemplates:
     - metadata:
         name: redis-data

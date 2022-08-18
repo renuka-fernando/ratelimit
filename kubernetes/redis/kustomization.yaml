@@ -7,6 +7,10 @@ configMapGenerator:
   - name: redis-config
     files:
       - redis.conf
+  - name: redis-scripts
+    files:
+      - scripts/ping_liveness_local.sh
+      - scripts/ping_readiness_local.sh
 
 resources:
   - redis-headless-service.yaml
