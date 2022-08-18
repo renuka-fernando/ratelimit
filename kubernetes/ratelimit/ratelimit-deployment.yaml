@@ -16,7 +16,8 @@ spec:
       containers:
         - name: ratelimit
           # image: envoyproxy/ratelimit:master
-          image: ratelimit-renuka:master
+          # image: ratelimit-renuka:master
+          image: envoyproxy/ratelimit:9d8d70a8
           imagePullPolicy: IfNotPresent
           command:
             - "/bin/ratelimit"
@@ -27,8 +28,17 @@ spec:
               value: debug
             - name: REDIS_SOCKET_TYPE
               value: tcp
+            - name: REDIS_TYPE
+              # value: sentinel
+              value: cluster
             - name: REDIS_URL
-              value: redis:6379 # TODO: update service name
+              # value: redis:6379 # TODO: update service name
+              # value: "mymaster,cc-redis-node-0:26379,cc-redis-node-1:26379" # TODO: update service name
+              value: "redis-cluster:6379"
+            - name: REDIS_PIPELINE_LIMIT
+              value: "8"
+            - name: REDIS_AUTH
+              value: "password123"
             - name: RUNTIME_ROOT
               value: /data
             - name: RUNTIME_SUBDIRECTORY
@@ -36,8 +46,9 @@ spec:
             - name: RUNTIME_WATCH_ROOT
               value: "false"
           volumeMounts:
-            - mountPath: /data/ratelimit/config
+            - mountPath: /data/ratelimit/config/ratelimit-config.yaml
               name: ratelimit-config-vol
+              subPath: ratelimit-config.yaml
           resources:
             requests:
               memory: "500Mi"

@@ -1,0 +1,14 @@
+secretGenerator:
+- name: redis-secret
+  literals:
+  - redis-password="password123"
+
+configMapGenerator:
+  - name: redis-config
+    files:
+      - redis.conf
+
+resources:
+  - redis-headless-service.yaml
+  - redis-service.yaml
+  - redis-statefulset.yaml

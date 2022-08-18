@@ -1,0 +1,115 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis-cluster
+  labels:
+    app: redis-cluster
+spec:
+  selector:
+    matchLabels:
+      app: redis-cluster
+  replicas: 6
+  serviceName: redis-cluster-headless
+  podManagementPolicy: Parallel
+  template:
+    metadata:
+      labels:
+        app: redis-cluster
+    spec:
+      # hostNetwork: false
+      # enableServiceLinks: false
+      securityContext:
+        fsGroup: 1001
+        runAsUser: 1001
+        sysctls: []
+      # serviceAccountName: default
+      # affinity:
+      #   podAffinity:
+
+      #   podAntiAffinity:
+      #     preferredDuringSchedulingIgnoredDuringExecution:
+      #       - podAffinityTerm:
+      #           labelSelector:
+      #             matchLabels:
+      #               app.kubernetes.io/name: redis-cluster
+      #               app.kubernetes.io/instance: my-redis
+      #           namespaces:
+      #             - "default"
+      #           topologyKey: kubernetes.io/hostname
+      #         weight: 1
+      #   nodeAffinity:
+
+      containers:
+        - name: redis-cluster
+          image: redis:7.0.4
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              redis-server /etc/redis/redis.conf --requirepass $REDIS_PASSWORD
+          env:
+            # - name: POD_NAME
+            #   valueFrom:
+            #     fieldRef:
+            #       fieldPath: metadata.name
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-secret
+                  key: redis-password
+          ports:
+            - name: tcp-redis
+              containerPort: 6379
+            - name: tcp-redis-bus
+              containerPort: 16379
+          # livenessProbe:
+          #   initialDelaySeconds: 5
+          #   periodSeconds: 5
+          #   # One second longer than command timeout should prevent generation of zombie processes.
+          #   timeoutSeconds: 6
+          #   successThreshold: 1
+          #   failureThreshold: 5
+          #   exec:
+          #     command:
+          #       - sh
+          #       - -c
+          #       - /scripts/ping_liveness_local.sh 5
+          # readinessProbe:
+          #   initialDelaySeconds: 5
+          #   periodSeconds: 5
+          #   # One second longer than command timeout should prevent generation of zombie processes.
+          #   timeoutSeconds: 2
+          #   successThreshold: 1
+          #   failureThreshold: 5
+          #   exec:
+          #     command:
+          #       - sh
+          #       - -c
+          #       - /scripts/ping_readiness_local.sh 1
+          resources:
+            limits: {}
+            requests: {}
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+            - name: redis-config
+              mountPath: /etc/redis/redis.conf
+              subPath: redis.conf
+      volumes:
+        - name: redis-config
+          configMap:
+            name: redis-config
+  volumeClaimTemplates:
+    - metadata:
+        name: redis-data
+        labels:
+          app: redis-cluster
+      spec:
+        accessModes:
+          - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: "1Gi"

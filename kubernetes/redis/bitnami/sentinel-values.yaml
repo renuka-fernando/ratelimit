@@ -1,0 +1,17 @@
+global:
+  redis:
+    password: "password123"
+image:
+  # repository: redis
+  repository: bitnami/redis
+  # tag: 7.0.4
+  tag: 7.0.4-debian-11-r11
+replica:
+  replicaCount: 3
+sentinel:
+  enabled: true
+  image:
+    # repository: redis
+    repository: bitnami/redis
+    # tag: 7.0.4
+    tag: 7.0.4-debian-11-r11

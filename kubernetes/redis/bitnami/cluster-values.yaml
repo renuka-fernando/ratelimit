@@ -1,0 +1,16 @@
+global:
+  redis:
+    password: "password123"
+# image:
+#   # repository: redis
+#   repository: bitnami/redis
+#   # tag: 7.0.4
+#   tag: 7.0.4-debian-11-r11
+cluster:
+  nodes: 3
+  replicas: 0
+  # image:
+  #   # repository: redis
+  #   repository: bitnami/redis
+  #   # tag: 7.0.4
+  #   tag: 7.0.4-debian-11-r11
