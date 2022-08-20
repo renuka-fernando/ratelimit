@@ -1,5 +1,26 @@
 # CC-DEV
 
+## Run Setup locally
+
+1.  Redis
+    ```
+    cd ~/Desktop/redis-temp
+    redis-server
+    ```
+2.  RateLimit service
+    Debug in VS Code
+3.  Ext Auth
+    Debug in VS Code
+4.  Mock
+    ```
+    cd ~/git/request-info
+    go run main.go -pretty -logH -logB -addr :8080
+    ```
+5.  Envoy
+    ```
+    envoy -c /Users/renuka/git/ratelimit/examples/envoy/envoy.yaml
+    ```
+
 ## Run Setup
 
 Change dir to source root.
@@ -40,6 +61,7 @@ docker-compose -f docker-compose-example.yml down -v
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 - [CC-DEV](#cc-dev)
+  - [Run Setup locally](#run-setup-locally)
   - [Run Setup](#run-setup)
   - [Test](#test)
   - [Stop](#stop)
