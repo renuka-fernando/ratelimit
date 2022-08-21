@@ -51,7 +51,7 @@ func (s *server) Check(
 	if len(extracted) == 2 && extracted[0] == "Bearer" {
 		valid, user := s.users.Check(extracted[1])
 		if valid {
-			return &envoy_service_auth_v3.CheckResponse{
+			resp := &envoy_service_auth_v3.CheckResponse{
 				HttpResponse: &envoy_service_auth_v3.CheckResponse_OkResponse{
 					OkResponse: &envoy_service_auth_v3.OkHttpResponse{
 						Headers: []*envoy_api_v3_core.HeaderValueOption{
@@ -67,7 +67,14 @@ func (s *server) Check(
 							{
 								Append: &wrappers.BoolValue{Value: false},
 								Header: &envoy_api_v3_core.HeaderValue{
-									Key:   "x-wso2-ratelimit-policy", // wso2 specific header
+									Key:   "x-cluster-header",
+									Value: "mock-sms",
+								},
+							},
+							{
+								Append: &wrappers.BoolValue{Value: false},
+								Header: &envoy_api_v3_core.HeaderValue{
+									Key:   "x-ratelimit-policy",
 									Value: xRateLimit,
 								},
 							},
@@ -88,7 +95,9 @@ func (s *server) Check(
 				// 		}},
 				// 	},
 				// },
-			}, nil
+			}
+			log.Printf("Response: %v", resp)
+			return resp, nil
 		}
 	}
 

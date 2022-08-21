@@ -40,9 +40,9 @@ static_resources:
                       address: 127.0.0.1
                       port_value: 8081
     - name: mock-sms
-      # connect_timeout: 20s
-      # dns_refresh_rate: 5s
-      # dns_lookup_family: V4_ONLY
+      connect_timeout: 20s
+      dns_refresh_rate: 5s
+      dns_lookup_family: V4_ONLY
       type: STRICT_DNS
       lb_policy: ROUND_ROBIN
       load_assignment:
@@ -107,7 +107,7 @@ static_resources:
                         timeout: 0.250s
                       transport_api_version: V3
                       include_peer_certificate: true
-                      clear_route_cache: true # TODO: check this
+                      clear_route_cache: true
                   - name: envoy.filters.http.ratelimit
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimit
@@ -141,7 +141,8 @@ static_resources:
                         - "cc-envoy"
                         - "cc-envoy:*"
                       request_headers_to_remove:
-                        - "x-cluster-header"
+                        - x-cluster-header
+                        - x-ratelimit-policy
                       routes:
                       # Health
                         - name: health
@@ -153,6 +154,23 @@ static_resources:
                               inline_string: '{"statue": "healthy"}'
                           decorator:
                             operation: "/health"
+                          typed_per_filter_config:
+                            envoy.filters.http.ext_authz:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute"
+                              disabled: true
+                            envoy.filters.http.lua:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.LuaPerRoute"
+                              disabled: true
+                      # Ready
+                        - name: ready
+                          match:
+                            path: /ready
+                          direct_response:
+                            status: 200
+                            body:
+                              inline_string: '{"statue": "ready"}'
+                          decorator:
+                            operation: "/ready"
                           typed_per_filter_config:
                             envoy.filters.http.ext_authz:
                               "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute"
@@ -180,37 +198,68 @@ static_resources:
                                 google_re2: {}
                                 regex: "^/sms/2.0.0/text[/]{0,1}"
                               substitution: "/api/v2/text"
-                            # timeout: 60s
-                            # idle_timeout: 300s
-                            # upgrade_configs:
-                            #   - upgrade_type: websocket
-                            #     enabled: false
-                            # cors:
-                            #   allow_methods: "GET, PUT, POST, DELETE, PATCH, OPTIONS"
-                            #   allow_headers: "authorization, Access-Control-Allow-Origin, Content-Type, SOAPAction, apikey, testKey, Internal-Key"
-                            #   allow_credentials: false
-                            #   allow_origin_string_match:
-                            #     - safe_regex:
-                            #         google_re2: {}
-                            #         regex: ".*"
+                            timeout: 60s
+                            idle_timeout: 300s
+                            upgrade_configs:
+                              - upgrade_type: websocket
+                                enabled: false
+                            cors:
+                              allow_methods: "GET, PUT, POST, DELETE, PATCH, OPTIONS"
+                              allow_headers: "authorization, Access-Control-Allow-Origin, Content-Type, SOAPAction, apikey, testKey, Internal-Key"
+                              allow_credentials: false
+                              allow_origin_string_match:
+                                - safe_regex:
+                                    google_re2: {}
+                                    regex: ".*"
+                            rate_limits:
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - generic_key:
+                                      descriptor_key: "resource"
+                                      descriptor_value: "/sms/2.0.0/text"
+                                  - generic_key:
+                                      descriptor_key: "method"
+                                      descriptor_value: "ALL"
+                                  - generic_key:
+                                      descriptor_key: "policy"
+                                      descriptor_value: "3PerMin"
+                                  - request_headers:
+                                      descriptor_key: "condition"
+                                      header_name: "x-ratelimit-policy"
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - generic_key:
+                                      descriptor_key: "resource"
+                                      descriptor_value: "/sms/2.0.0/text"
+                                  - generic_key:
+                                      descriptor_key: "method"
+                                      descriptor_value: "ALL"
+                                  - generic_key:
+                                      descriptor_key: "policy"
+                                      descriptor_value: "3PerMin"
+                                  - generic_key:
+                                      descriptor_key: "spike"
+                                      descriptor_value: "true"
                           decorator:
                             operation: "cc-envoy:^/sms/2.0.0/text[/]{0,1}"
-                          # response_headers_to_remove:
-                          #   - x-envoy-upstream-service-time
-                          # typed_per_filter_config:
-                          #   envoy.filters.http.lua:
-                          #     "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.LuaPerRoute"
-                          #     disabled: true
-                          #   envoy.filters.http.ext_authz:
-                          #     "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute"
-                          #     check_settings:
-                          #       context_extensions:
-                          #         basePath: "/sms/2.0.0"
-                          #         method: "POST"
-                          #         name: "SMS"
-                          #         path: "/sms/2.0.0/text"
-                          #         prodClusterName: "carbon.super_clusterProd_cc-envoy_SMS2.0.0"
-                          #         sandClusterName: ""
-                          #         vHost: "cc-envoy"
-                          #         version: "2.0.0"
-                          #       disable_request_body_buffering: true
+                          typed_per_filter_config:
+                            envoy.filters.http.lua:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.LuaPerRoute"
+                              disabled: true
+                            envoy.filters.http.ext_authz:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute"
+                              check_settings:
+                                context_extensions:
+                                  basePath: "/sms/2.0.0"
+                                  method: "POST"
+                                  name: "SMS"
+                                  path: "/sms/2.0.0/text"
+                                  prodClusterName: "clusterProd_cc-envoy_SMS2.0.0"
+                                  sandClusterName: ""
+                                  vHost: "cc-envoy"
+                                  version: "2.0.0"
+                                disable_request_body_buffering: true
