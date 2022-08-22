@@ -3,18 +3,25 @@ package authsample
 import (
 	"encoding/json"
 	"io/ioutil"
+	"strings"
 )
 
 // Users holds a list of users.
 type Users map[string]string
 
 // Check checks if a key could retrieve a user from a list of users.
-func (u Users) Check(key string) (bool, string) {
-	value, ok := u[key]
-	if !ok {
-		return false, ""
+func (u Users) Check(key string) (bool, string, string) {
+	splits := strings.Split(key, ".")
+	if len(splits) != 2 {
+		return false, "", ""
 	}
-	return ok, value
+
+	userToken := splits[0]
+	value, ok := u[userToken]
+	if !ok {
+		return false, "", ""
+	}
+	return ok, value, splits[1]
 }
 
 // LoadUsers load users data from a JSON file.

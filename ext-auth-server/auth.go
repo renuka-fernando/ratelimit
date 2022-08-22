@@ -21,6 +21,16 @@ type server struct {
 
 var _ envoy_service_auth_v3.AuthorizationServer = &server{}
 
+var appPolicies = map[string]string{
+	"MyTour":   "3PerMin",
+	"FuelPass": "3PerMin",
+}
+
+var subPolicies = map[string]string{
+	"MyTour/Hotels": "3PerMin",
+	"FuelPass/SMS":  "3PerMin",
+}
+
 // New creates a new authorization server.
 func New(users Users) envoy_service_auth_v3.AuthorizationServer {
 	return &server{users}
@@ -32,25 +42,18 @@ func (s *server) Check(
 	ctx context.Context,
 	req *envoy_service_auth_v3.CheckRequest) (*envoy_service_auth_v3.CheckResponse, error) {
 
-	log.Printf("Request size: %d\n", req.Attributes.Request.Http.Size)
 	authorization := req.Attributes.Request.Http.Headers["authorization"]
-	log.Println(authorization)
-
-	xForwardedFor := req.Attributes.Request.Http.Headers["x-forwarded-for"]
-	xRateLimit := "default" // default limit
-	now := time.Now()
-	if checkRange(xForwardedFor) {
-		xRateLimit = "c1"
-	} else if now.Month() == 8 && now.Day() == 4 {
-		xRateLimit = "c2"
-	} else if now.UTC().Hour() > 18 {
-		xRateLimit = "c3"
-	}
-
 	extracted := strings.Fields(authorization)
+
 	if len(extracted) == 2 && extracted[0] == "Bearer" {
-		valid, user := s.users.Check(extracted[1])
+		valid, user, app := s.users.Check(extracted[1])
 		if valid {
+			cluster := req.Attributes.ContextExtensions["prodClusterName"]
+			api := req.Attributes.ContextExtensions["name"]
+			subscription := app + "/" + api
+
+			xRateLimit := getCustomPolicyName(req, user, app, api, subscription)
+
 			resp := &envoy_service_auth_v3.CheckResponse{
 				HttpResponse: &envoy_service_auth_v3.CheckResponse_OkResponse{
 					OkResponse: &envoy_service_auth_v3.OkHttpResponse{
@@ -68,14 +71,42 @@ func (s *server) Check(
 								Append: &wrappers.BoolValue{Value: false},
 								Header: &envoy_api_v3_core.HeaderValue{
 									Key:   "x-cluster-header",
-									Value: "mock-sms",
+									Value: cluster,
 								},
 							},
 							{
 								Append: &wrappers.BoolValue{Value: false},
 								Header: &envoy_api_v3_core.HeaderValue{
-									Key:   "x-ratelimit-policy",
+									Key:   "x-ratelimit-api-policy",
 									Value: xRateLimit,
+								},
+							},
+							{
+								Append: &wrappers.BoolValue{Value: false},
+								Header: &envoy_api_v3_core.HeaderValue{
+									Key:   "x-ratelimit-application",
+									Value: app,
+								},
+							},
+							{
+								Append: &wrappers.BoolValue{Value: false},
+								Header: &envoy_api_v3_core.HeaderValue{
+									Key:   "x-ratelimit-application-policy",
+									Value: appPolicies[app],
+								},
+							},
+							{
+								Append: &wrappers.BoolValue{Value: false},
+								Header: &envoy_api_v3_core.HeaderValue{
+									Key:   "x-ratelimit-subscription",
+									Value: subscription,
+								},
+							},
+							{
+								Append: &wrappers.BoolValue{Value: false},
+								Header: &envoy_api_v3_core.HeaderValue{
+									Key:   "x-ratelimit-subscription-policy",
+									Value: subPolicies[subscription],
 								},
 							},
 						},
@@ -108,6 +139,29 @@ func (s *server) Check(
 	}, nil
 }
 
+func getCustomPolicyName(req *envoy_service_auth_v3.CheckRequest, user, app, api, subscription string) (policyName string) {
+	policyName = "default"
+	xForwardedFor := req.Attributes.Request.Http.Headers["x-forwarded-for"]
+
+	if api == "PizzaShack" && user == "user1" {
+		policyName = "c1"
+	} else if api == "SMS" && checkRange(xForwardedFor) {
+		policyName = "c1"
+	} else if strings.HasPrefix(req.Attributes.Request.Http.Path, "/country") {
+		if isOffPeak() {
+			policyName = "c1"
+		} else if req.Attributes.Request.Http.Headers["foo"] == "bar" {
+			policyName = "c2"
+		}
+	} else if strings.HasPrefix(req.Attributes.Request.Http.Path, "/location") && isOffPeak() && checkRange(xForwardedFor) {
+		policyName = "c1"
+	}
+
+	log.Println("Custom Policy: " + policyName)
+
+	return
+}
+
 func checkRange(ip string) bool {
 	var ip1 = net.ParseIP("216.14.49.184")
 	var ip2 = net.ParseIP("216.14.49.191")
@@ -123,4 +177,8 @@ func checkRange(ip string) bool {
 	}
 	log.Printf("%v is NOT between %v and %v\n", trial, ip1, ip2)
 	return false
+}
+
+func isOffPeak() bool {
+	return time.Now().Hour() >= 18
 }

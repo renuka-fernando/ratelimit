@@ -39,14 +39,14 @@ static_resources:
                     socket_address:
                       address: 127.0.0.1
                       port_value: 8081
-    - name: mock-sms
+    - name: clusterProd_cc-envoy_SMS2.0.0
       connect_timeout: 20s
       dns_refresh_rate: 5s
       dns_lookup_family: V4_ONLY
       type: STRICT_DNS
       lb_policy: ROUND_ROBIN
       load_assignment:
-        cluster_name: mock-sms
+        cluster_name: clusterProd_cc-envoy_SMS2.0.0
         endpoints:
           - lb_endpoints:
               - endpoint:
@@ -97,7 +97,8 @@ static_resources:
                 stream_idle_timeout: 300s
                 request_timeout: 0s
                 http_filters:
-                  # TODO: CORS filter
+                  - name: envoy.filters.http.cors
+                    typed_config: {}
                   - name: envoy.filters.http.ext_authz
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
@@ -142,7 +143,11 @@ static_resources:
                         - "cc-envoy:*"
                       request_headers_to_remove:
                         - x-cluster-header
-                        - x-ratelimit-policy
+                        - x-ratelimit-api-policy
+                        - x-ratelimit-application
+                        - x-ratelimit-application-policy
+                        - x-ratelimit-subscription
+                        - x-ratelimit-subscription-policy
                       routes:
                       # Health
                         - name: health
@@ -216,6 +221,42 @@ static_resources:
                                   - generic_key:
                                       descriptor_key: "org"
                                       descriptor_value: "John"
+                                  - request_headers:
+                                      descriptor_key: "application"
+                                      header_name: "x-ratelimit-application"
+                                  - request_headers:
+                                      descriptor_key: "policy"
+                                      header_name: "x-ratelimit-application-policy"
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - request_headers:
+                                      descriptor_key: "subscription"
+                                      header_name: "x-ratelimit-subscription"
+                                  - request_headers:
+                                      descriptor_key: "policy"
+                                      header_name: "x-ratelimit-subscription-policy"
+                                  - generic_key:
+                                      descriptor_key: "spike"
+                                      descriptor_value: "true"
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - request_headers:
+                                      descriptor_key: "subscription"
+                                      header_name: "x-ratelimit-subscription"
+                                  - request_headers:
+                                      descriptor_key: "policy"
+                                      header_name: "x-ratelimit-subscription-policy"
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - generic_key:
+                                      descriptor_key: "vhost"
+                                      descriptor_value: "cc-envoy"
                                   - generic_key:
                                       descriptor_key: "resource"
                                       descriptor_value: "/sms/2.0.0/text"
@@ -227,23 +268,7 @@ static_resources:
                                       descriptor_value: "3PerMin"
                                   - request_headers:
                                       descriptor_key: "condition"
-                                      header_name: "x-ratelimit-policy"
-                              - actions:
-                                  - generic_key:
-                                      descriptor_key: "org"
-                                      descriptor_value: "John"
-                                  - generic_key:
-                                      descriptor_key: "resource"
-                                      descriptor_value: "/sms/2.0.0/text"
-                                  - generic_key:
-                                      descriptor_key: "method"
-                                      descriptor_value: "ALL"
-                                  - generic_key:
-                                      descriptor_key: "policy"
-                                      descriptor_value: "3PerMin"
-                                  - generic_key:
-                                      descriptor_key: "spike"
-                                      descriptor_value: "true"
+                                      header_name: "x-ratelimit-api-policy"
                           decorator:
                             operation: "cc-envoy:^/sms/2.0.0/text[/]{0,1}"
                           typed_per_filter_config:
@@ -256,9 +281,9 @@ static_resources:
                                 context_extensions:
                                   basePath: "/sms/2.0.0"
                                   method: "POST"
-                                  name: "SMS"
+                                  name: "SMS" # API Name
                                   path: "/sms/2.0.0/text"
-                                  prodClusterName: "clusterProd_cc-envoy_SMS2.0.0"
+                                  prodClusterName: "clusterProd_cc-envoy_SMS2.0.0" # Cluster Name
                                   sandClusterName: ""
                                   vHost: "cc-envoy"
                                   version: "2.0.0"
