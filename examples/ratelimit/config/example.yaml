@@ -13,55 +13,163 @@ descriptors:
               - key: method # method: [ALL|GET|PUT|POST...] (ALL for API level and resource level)
                 descriptors:
                   - key: policy
-                    value: 3PerMin
+                    value: 200PerMin
                     descriptors:
                       - key: condition
                         value: default
                         rate_limit:
                           unit: minute
-                          requests_per_unit: 3
+                          requests_per_unit: 200
+                      - key: condition
+                        value: c1 # we may have to use a UUID instead of C1, C2, ...
+                        rate_limit:
+                          unit: second
+                          requests_per_unit: 10
+                  - key: policy
+                    value: 150PerMin
+                    descriptors:
+                      - key: condition
+                        value: default
+                        rate_limit:
+                          unit: minute
+                          requests_per_unit: 150
                       - key: condition
                         value: c1 # we may have to use a UUID instead of C1, C2, ...
                         rate_limit:
                           unit: minute
-                          requests_per_unit: 5
+                          requests_per_unit: 300
+                  - key: policy
+                    value: 18000PerHour
+                    descriptors:
                       - key: condition
-                        value: c2
+                        value: default
+                        rate_limit:
+                          unit: hour
+                          requests_per_unit: 18000
+                  - key: policy
+                    value: 500PerMin
+                    descriptors:
+                      - key: condition
+                        value: default
                         rate_limit:
                           unit: minute
-                          requests_per_unit: 10
+                          requests_per_unit: 500
+                  - key: policy
+                    value: 600PerMin
+                    descriptors:
+                      - key: condition
+                        value: default
+                        rate_limit:
+                          unit: minute
+                          requests_per_unit: 600
+                      - key: condition
+                        value: c1 # we may have to use a UUID instead of C1, C2, ...
+                        rate_limit:
+                          unit: minute
+                          requests_per_unit: 300
+                      - key: condition
+                        value: c2 # we may have to use a UUID instead of C1, C2, ...
+                        rate_limit:
+                          unit: minute
+                          requests_per_unit: 500
+                  - key: policy
+                    value: 250PerMin
+                    descriptors:
+                      - key: condition
+                        value: default
+                        rate_limit:
+                          unit: minute
+                          requests_per_unit: 250
+                      - key: condition
+                        value: c1 # we may have to use a UUID instead of C1, C2, ...
+                        rate_limit:
+                          unit: minute
+                          requests_per_unit: 600
 
       # Subscription level
       - key: subscription # Sends from ext auth service as a header
         descriptors:
           - key: policy
-            value: 3PerMin
+            value: 400PerMin
             rate_limit:
               unit: minute
-              requests_per_unit: 3
+              requests_per_unit: 400
             descriptors:
               - key: spike
                 value: true
                 rate_limit:
                   unit: second
-                  requests_per_unit: 1
+                  requests_per_unit: 100
           - key: policy
-            value: 5PerMin
+            value: 300PerMin
             rate_limit:
               unit: minute
-              requests_per_unit: 5
+              requests_per_unit: 300
             descriptors:
               - key: spike
                 value: true
                 rate_limit:
                   unit: second
-                  requests_per_unit: 1
+                  requests_per_unit: 50
+          - key: policy
+            value: 2000PerHour
+            rate_limit:
+              unit: hour
+              requests_per_unit: 2000
+            descriptors:
+              - key: spike
+                value: true
+                rate_limit:
+                  unit: second
+                  requests_per_unit: 50
+          - key: policy
+            value: 100PerMin
+            rate_limit:
+              unit: minute
+              requests_per_unit: 100
+            descriptors:
+              - key: spike
+                value: true
+                rate_limit:
+                  unit: second
+                  requests_per_unit: 10
+          - key: policy
+            value: 80PerMin
+            rate_limit:
+              unit: minute
+              requests_per_unit: 80
+          - key: policy
+            value: 600PerHour
+            rate_limit:
+              unit: hour
+              requests_per_unit: 600
+            descriptors:
+              - key: spike
+                value: true
+                rate_limit:
+                  unit: minute
+                  requests_per_unit: 20
 
       # Application level
       - key: application # Sends from ext auth service as a header
         descriptors:
           - key: policy
-            value: 3PerMin
+            value: 100PerMin
             rate_limit:
               unit: minute
-              requests_per_unit: 3
+              requests_per_unit: 100
+          - key: policy
+            value: 9000PerHour
+            rate_limit:
+              unit: hour
+              requests_per_unit: 9000
+          - key: policy
+            value: 5PerSec
+            rate_limit:
+              unit: second
+              requests_per_unit: 5
+          - key: policy
+            value: 30PerMin
+            rate_limit:
+              unit: minute
+              requests_per_unit: 30

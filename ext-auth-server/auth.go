@@ -22,13 +22,20 @@ type server struct {
 var _ envoy_service_auth_v3.AuthorizationServer = &server{}
 
 var appPolicies = map[string]string{
-	"MyTour":   "3PerMin",
-	"FuelPass": "3PerMin",
+	"MyTour":      "100PerMin",
+	"DaySchedule": "9000PerHour",
+	"FuelPass":    "5PerSec",
+	"MyPet":       "30PerMin",
 }
 
 var subPolicies = map[string]string{
-	"MyTour/Hotels": "3PerMin",
-	"FuelPass/SMS":  "3PerMin",
+	"MyTour/Hotels":          "400PerMin",
+	"MyTour/Weather":         "300PerMin",
+	"DaySchedule/PizzaShack": "2000PerHour",
+	"DaySchedule/SMS":        "100PerMin",
+	"DaySchedule/Weather":    "80PerMin",
+	"FuelPass/SMS":           "100PerMin",
+	"PetsCare/Pets":          "600PerHour",
 }
 
 // New creates a new authorization server.
@@ -147,13 +154,13 @@ func getCustomPolicyName(req *envoy_service_auth_v3.CheckRequest, user, app, api
 		policyName = "c1"
 	} else if api == "SMS" && checkRange(xForwardedFor) {
 		policyName = "c1"
-	} else if strings.HasPrefix(req.Attributes.Request.Http.Path, "/country") {
+	} else if strings.Contains(req.Attributes.Request.Http.Path, "/country") {
 		if isOffPeak() {
 			policyName = "c1"
 		} else if req.Attributes.Request.Http.Headers["foo"] == "bar" {
 			policyName = "c2"
 		}
-	} else if strings.HasPrefix(req.Attributes.Request.Http.Path, "/location") && isOffPeak() && checkRange(xForwardedFor) {
+	} else if strings.Contains(req.Attributes.Request.Http.Path, "/location") && isOffPeak() && checkRange(xForwardedFor) {
 		policyName = "c1"
 	}
 

@@ -325,7 +325,7 @@ static_resources:
                                       descriptor_value: "ALL"
                                   - generic_key:
                                       descriptor_key: "policy"
-                                      descriptor_value: "3PerMin"
+                                      descriptor_value: "150PerMin"
                                   - request_headers:
                                       descriptor_key: "condition"
                                       header_name: "x-ratelimit-api-policy"
@@ -430,7 +430,7 @@ static_resources:
                                       descriptor_value: "ALL"
                                   - generic_key:
                                       descriptor_key: "policy"
-                                      descriptor_value: "3PerMin"
+                                      descriptor_value: "200PerMin"
                                   - request_headers:
                                       descriptor_key: "condition"
                                       header_name: "x-ratelimit-api-policy"
@@ -534,7 +534,7 @@ static_resources:
                                       descriptor_value: "ALL"
                                   - generic_key:
                                       descriptor_key: "policy"
-                                      descriptor_value: "3PerMin"
+                                      descriptor_value: "200PerMin"
                                   - request_headers:
                                       descriptor_key: "condition"
                                       header_name: "x-ratelimit-api-policy"
@@ -639,7 +639,7 @@ static_resources:
                                       descriptor_value: "ALL"
                                   - generic_key:
                                       descriptor_key: "policy"
-                                      descriptor_value: "3PerMin"
+                                      descriptor_value: "18000PerHour"
                                   - request_headers:
                                       descriptor_key: "condition"
                                       header_name: "x-ratelimit-api-policy"
@@ -743,7 +743,7 @@ static_resources:
                                       descriptor_value: "ALL"
                                   - generic_key:
                                       descriptor_key: "policy"
-                                      descriptor_value: "3PerMin"
+                                      descriptor_value: "500PerMin"
                                   - request_headers:
                                       descriptor_key: "condition"
                                       header_name: "x-ratelimit-api-policy"
@@ -848,7 +848,7 @@ static_resources:
                                       header_name: ":method" # Special change here for HTTP method
                                   - generic_key:
                                       descriptor_key: "policy"
-                                      descriptor_value: "3PerMin"
+                                      descriptor_value: "600PerMin"
                                   - request_headers:
                                       descriptor_key: "condition"
                                       header_name: "x-ratelimit-api-policy"
@@ -952,7 +952,7 @@ static_resources:
                                       header_name: ":method" # Special change here for HTTP method
                                   - generic_key:
                                       descriptor_key: "policy"
-                                      descriptor_value: "3PerMin"
+                                      descriptor_value: "250PerMin"
                                   - request_headers:
                                       descriptor_key: "condition"
                                       header_name: "x-ratelimit-api-policy"
