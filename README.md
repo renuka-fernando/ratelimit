@@ -18,7 +18,7 @@
     ```
 5.  Envoy
     ```
-    envoy -c /Users/renuka/git/ratelimit/examples/envoy/envoy.yaml
+    envoy -c ~/git/ratelimit/examples/envoy/envoy.yaml
     ```
 
 ## Run Setup
@@ -43,10 +43,28 @@ Change dir to source root.
 ## Test
 
 ```sh
-curl localhost:8888/sms/v1/api-level -i -H 'Authorization: Bearer token1'
-curl localhost:8888/sms/v1/resource-level -i -H 'Authorization: Bearer token1'
-curl localhost:8888/sms/v1/method-level -i -H 'Authorization: Bearer token1' -d 'hello'
-curl localhost:8888/hotels/v1/ip-range -i -H 'Authorization: Bearer token1' -H "X-Forwarded-For:216.14.49.185"
+# SMS
+curl https://localhost:8888/sms/2.0.0/text --cacert ~/releases/cc/choreo-connect-1.1.0/docker-compose/resources/router/security/keystore/mg.pem -i -H 'Authorization: Bearer token1.FuelPass' -d '{"message": "hello world"}'
+
+# PizzaShack
+curl https://localhost:8888/pizzashack/1.0.0/menu --cacert ~/releases/cc/choreo-connect-1.1.0/docker-compose/resources/router/security/keystore/mg.pem -i -H 'Authorization: Bearer token1.FuelPass'
+curl https://localhost:8888/pizzashack/1.0.0/order/12 --cacert ~/releases/cc/choreo-connect-1.1.0/docker-compose/resources/router/security/keystore/mg.pem -i -H 'Authorization: Bearer token1.FuelPass'
+curl https://localhost:8888/pizzashack/1.0.0/order/12 --cacert ~/releases/cc/choreo-connect-1.1.0/docker-compose/resources/router/security/keystore/mg.pem -i -H 'Authorization: Bearer token1.FuelPass' -d '{"message": "hello world"}'
+curl https://localhost:8888/pizzashack/1.0.0/order/12 --cacert ~/releases/cc/choreo-connect-1.1.0/docker-compose/resources/router/security/keystore/mg.pem -i -H 'Authorization: Bearer token1.FuelPass' -X DELETE
+
+# Hotels
+curl https://localhost:8888/hotels/2.1.0/hotels --cacert ~/releases/cc/choreo-connect-1.1.0/docker-compose/resources/router/security/keystore/mg.pem -i -H 'Authorization: Bearer token1.FuelPass'
+curl https://localhost:8888/hotels/2.1.0/hotels/123/rate --cacert ~/releases/cc/choreo-connect-1.1.0/docker-compose/resources/router/security/keystore/mg.pem -i -H 'Authorization: Bearer token1.FuelPass'
+curl https://localhost:8888/hotels/2.1.0/hotels/123/rate --cacert ~/releases/cc/choreo-connect-1.1.0/docker-compose/resources/router/security/keystore/mg.pem -i -H 'Authorization: Bearer token1.FuelPass' -d '{"message": "hello world"}'
+curl https://localhost:8888/hotels/2.1.0/hotels/123/rate --cacert ~/releases/cc/choreo-connect-1.1.0/docker-compose/resources/router/security/keystore/mg.pem -i -H 'Authorization: Bearer token1.FuelPass' -X DELETE
+
+# Weather
+curl https://localhost:8888/weather/1.1.0/country/123 --cacert ~/releases/cc/choreo-connect-1.1.0/docker-compose/resources/router/security/keystore/mg.pem -i -H 'Authorization: Bearer token1.FuelPass'
+curl https://localhost:8888/weather/1.1.0/location?long=123123&lat=456456 --cacert ~/releases/cc/choreo-connect-1.1.0/docker-compose/resources/router/security/keystore/mg.pem -i -H 'Authorization: Bearer token1.FuelPass'
+
+# Pets
+curl https://localhost:8888/pets/3.1.0/pets --cacert ~/releases/cc/choreo-connect-1.1.0/docker-compose/resources/router/security/keystore/mg.pem -i -H 'Authorization: Bearer token1.FuelPass'
+curl https://localhost:8888/pets/3.1.0/pets/456 --cacert ~/releases/cc/choreo-connect-1.1.0/docker-compose/resources/router/security/keystore/mg.pem -i -H 'Authorization: Bearer token1.FuelPass'
 ```
 
 ## Stop

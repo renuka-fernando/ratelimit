@@ -54,6 +54,66 @@ static_resources:
                     socket_address:
                       address: 127.0.0.1
                       port_value: 9080
+    - name: clusterProd_cc-envoy_PizzaShack1.0.0
+      connect_timeout: 20s
+      dns_refresh_rate: 5s
+      dns_lookup_family: V4_ONLY
+      type: STRICT_DNS
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: clusterProd_cc-envoy_PizzaShack1.0.0
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: 127.0.0.1
+                      port_value: 9080
+    - name: clusterProd_cc-envoy_Hotels2.1.0
+      connect_timeout: 20s
+      dns_refresh_rate: 5s
+      dns_lookup_family: V4_ONLY
+      type: STRICT_DNS
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: clusterProd_cc-envoy_Hotels2.1.0
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: 127.0.0.1
+                      port_value: 9080
+    - name: clusterProd_cc-envoy_Weather1.1.0
+      connect_timeout: 20s
+      dns_refresh_rate: 5s
+      dns_lookup_family: V4_ONLY
+      type: STRICT_DNS
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: clusterProd_cc-envoy_Weather1.1.0
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: 127.0.0.1
+                      port_value: 9080
+    - name: clusterProd_cc-envoy_Pets3.1.0
+      connect_timeout: 20s
+      dns_refresh_rate: 5s
+      dns_lookup_family: V4_ONLY
+      type: STRICT_DNS
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: clusterProd_cc-envoy_Pets3.1.0
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: 127.0.0.1
+                      port_value: 9080
     - name: mock
       connect_timeout: 1s
       type: STRICT_DNS
@@ -194,7 +254,7 @@ static_resources:
                                 string_match:
                                   safe_regex:
                                     google_re2: {}
-                                    regex: "^GET|OPTIONS$"
+                                    regex: "^POST|OPTIONS$"
                           route:
                             cluster_header: x-cluster-header
                             auto_host_rewrite: true
@@ -259,7 +319,7 @@ static_resources:
                                       descriptor_value: "cc-envoy"
                                   - generic_key:
                                       descriptor_key: "resource"
-                                      descriptor_value: "/sms/2.0.0/text"
+                                      descriptor_value: "/sms/2.0.0"
                                   - generic_key:
                                       descriptor_key: "method"
                                       descriptor_value: "ALL"
@@ -287,4 +347,802 @@ static_resources:
                                   sandClusterName: ""
                                   vHost: "cc-envoy"
                                   version: "2.0.0"
+                                disable_request_body_buffering: true
+                      # API: PizzaShack
+                        - name: PizzaShack
+                          match:
+                            safe_regex:
+                              google_re2: {}
+                              regex: "^/pizzashack/1.0.0/menu[/]{0,1}"
+                            headers:
+                              - name: ":method"
+                                string_match:
+                                  safe_regex:
+                                    google_re2: {}
+                                    regex: "^GET|OPTIONS$"
+                          route:
+                            cluster_header: x-cluster-header
+                            auto_host_rewrite: true
+                            regex_rewrite:
+                              pattern:
+                                google_re2: {}
+                                regex: "^/pizzashack/1.0.0/menu[/]{0,1}"
+                              substitution: "/pizzashack/v2/menu"
+                            timeout: 60s
+                            idle_timeout: 300s
+                            upgrade_configs:
+                              - upgrade_type: websocket
+                                enabled: false
+                            cors:
+                              allow_methods: "GET, PUT, POST, DELETE, PATCH, OPTIONS"
+                              allow_headers: "authorization, Access-Control-Allow-Origin, Content-Type, SOAPAction, apikey, testKey, Internal-Key"
+                              allow_credentials: false
+                              allow_origin_string_match:
+                                - safe_regex:
+                                    google_re2: {}
+                                    regex: ".*"
+                            rate_limits:
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - request_headers:
+                                      descriptor_key: "application"
+                                      header_name: "x-ratelimit-application"
+                                  - request_headers:
+                                      descriptor_key: "policy"
+                                      header_name: "x-ratelimit-application-policy"
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - request_headers:
+                                      descriptor_key: "subscription"
+                                      header_name: "x-ratelimit-subscription"
+                                  - request_headers:
+                                      descriptor_key: "policy"
+                                      header_name: "x-ratelimit-subscription-policy"
+                                  - generic_key:
+                                      descriptor_key: "spike"
+                                      descriptor_value: "true"
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - request_headers:
+                                      descriptor_key: "subscription"
+                                      header_name: "x-ratelimit-subscription"
+                                  - request_headers:
+                                      descriptor_key: "policy"
+                                      header_name: "x-ratelimit-subscription-policy"
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - generic_key:
+                                      descriptor_key: "vhost"
+                                      descriptor_value: "cc-envoy"
+                                  - generic_key:
+                                      descriptor_key: "resource"
+                                      descriptor_value: "/pizzashack/1.0.0"
+                                  - generic_key:
+                                      descriptor_key: "method"
+                                      descriptor_value: "ALL"
+                                  - generic_key:
+                                      descriptor_key: "policy"
+                                      descriptor_value: "3PerMin"
+                                  - request_headers:
+                                      descriptor_key: "condition"
+                                      header_name: "x-ratelimit-api-policy"
+                          decorator:
+                            operation: "cc-envoy:^/pizzashack/1.0.0/menu[/]{0,1}"
+                          typed_per_filter_config:
+                            envoy.filters.http.lua:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.LuaPerRoute"
+                              disabled: true
+                            envoy.filters.http.ext_authz:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute"
+                              check_settings:
+                                context_extensions:
+                                  basePath: "/pizzashack/1.0.0"
+                                  method: "GET"
+                                  name: "PizzaShack" # API Name
+                                  path: "/pizzashack/1.0.0/menu"
+                                  prodClusterName: "clusterProd_cc-envoy_PizzaShack1.0.0" # Cluster Name
+                                  sandClusterName: ""
+                                  vHost: "cc-envoy"
+                                  version: "1.0.0"
+                                disable_request_body_buffering: true
+                        - name: PizzaShack
+                          match:
+                            safe_regex:
+                              google_re2: {}
+                              regex: "^/pizzashack/1.0.0/order/([^/]+)[/]{0,1}"
+                            headers:
+                              - name: ":method"
+                                string_match:
+                                  safe_regex:
+                                    google_re2: {}
+                                    regex: "^GET|POST|DELETE|OPTIONS$"
+                          route:
+                            cluster_header: x-cluster-header
+                            auto_host_rewrite: true
+                            regex_rewrite:
+                              pattern:
+                                google_re2: {}
+                                regex: "^/pizzashack/1.0.0/order/([^/]+)[/]{0,1}"
+                              substitution: "/pizzashack/v2/order/\\1"
+                            timeout: 60s
+                            idle_timeout: 300s
+                            upgrade_configs:
+                              - upgrade_type: websocket
+                                enabled: false
+                            cors:
+                              allow_methods: "GET, PUT, POST, DELETE, PATCH, OPTIONS"
+                              allow_headers: "authorization, Access-Control-Allow-Origin, Content-Type, SOAPAction, apikey, testKey, Internal-Key"
+                              allow_credentials: false
+                              allow_origin_string_match:
+                                - safe_regex:
+                                    google_re2: {}
+                                    regex: ".*"
+                            rate_limits:
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - request_headers:
+                                      descriptor_key: "application"
+                                      header_name: "x-ratelimit-application"
+                                  - request_headers:
+                                      descriptor_key: "policy"
+                                      header_name: "x-ratelimit-application-policy"
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - request_headers:
+                                      descriptor_key: "subscription"
+                                      header_name: "x-ratelimit-subscription"
+                                  - request_headers:
+                                      descriptor_key: "policy"
+                                      header_name: "x-ratelimit-subscription-policy"
+                                  - generic_key:
+                                      descriptor_key: "spike"
+                                      descriptor_value: "true"
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - request_headers:
+                                      descriptor_key: "subscription"
+                                      header_name: "x-ratelimit-subscription"
+                                  - request_headers:
+                                      descriptor_key: "policy"
+                                      header_name: "x-ratelimit-subscription-policy"
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - generic_key:
+                                      descriptor_key: "vhost"
+                                      descriptor_value: "cc-envoy"
+                                  - generic_key:
+                                      descriptor_key: "resource"
+                                      descriptor_value: "/pizzashack/1.0.0"
+                                  - generic_key:
+                                      descriptor_key: "method"
+                                      descriptor_value: "ALL"
+                                  - generic_key:
+                                      descriptor_key: "policy"
+                                      descriptor_value: "3PerMin"
+                                  - request_headers:
+                                      descriptor_key: "condition"
+                                      header_name: "x-ratelimit-api-policy"
+                          decorator:
+                            operation: "cc-envoy:^/pizzashack/1.0.0/order/([^/]+)[/]{0,1}"
+                          typed_per_filter_config:
+                            envoy.filters.http.lua:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.LuaPerRoute"
+                              disabled: true
+                            envoy.filters.http.ext_authz:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute"
+                              check_settings:
+                                context_extensions:
+                                  basePath: "/pizzashack/1.0.0"
+                                  method: "GET"
+                                  name: "PizzaShack" # API Name
+                                  path: "/pizzashack/1.0.0/order/{id}"
+                                  prodClusterName: "clusterProd_cc-envoy_PizzaShack1.0.0" # Cluster Name
+                                  sandClusterName: ""
+                                  vHost: "cc-envoy"
+                                  version: "1.0.0"
+                                disable_request_body_buffering: true
+                      # API: Hotels
+                        - name: Hotels
+                          match:
+                            safe_regex:
+                              google_re2: {}
+                              regex: "^/hotels/2.1.0/hotels[/]{0,1}"
+                            headers:
+                              - name: ":method"
+                                string_match:
+                                  safe_regex:
+                                    google_re2: {}
+                                    regex: "^GET|OPTIONS$"
+                          route:
+                            cluster_header: x-cluster-header
+                            auto_host_rewrite: true
+                            regex_rewrite:
+                              pattern:
+                                google_re2: {}
+                                regex: "^/hotels/2.1.0/hotels[/]{0,1}"
+                              substitution: "/hotels/v2/hotels"
+                            timeout: 60s
+                            idle_timeout: 300s
+                            upgrade_configs:
+                              - upgrade_type: websocket
+                                enabled: false
+                            cors:
+                              allow_methods: "GET, PUT, POST, DELETE, PATCH, OPTIONS"
+                              allow_headers: "authorization, Access-Control-Allow-Origin, Content-Type, SOAPAction, apikey, testKey, Internal-Key"
+                              allow_credentials: false
+                              allow_origin_string_match:
+                                - safe_regex:
+                                    google_re2: {}
+                                    regex: ".*"
+                            rate_limits:
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - request_headers:
+                                      descriptor_key: "application"
+                                      header_name: "x-ratelimit-application"
+                                  - request_headers:
+                                      descriptor_key: "policy"
+                                      header_name: "x-ratelimit-application-policy"
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - request_headers:
+                                      descriptor_key: "subscription"
+                                      header_name: "x-ratelimit-subscription"
+                                  - request_headers:
+                                      descriptor_key: "policy"
+                                      header_name: "x-ratelimit-subscription-policy"
+                                  - generic_key:
+                                      descriptor_key: "spike"
+                                      descriptor_value: "true"
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - request_headers:
+                                      descriptor_key: "subscription"
+                                      header_name: "x-ratelimit-subscription"
+                                  - request_headers:
+                                      descriptor_key: "policy"
+                                      header_name: "x-ratelimit-subscription-policy"
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - generic_key:
+                                      descriptor_key: "vhost"
+                                      descriptor_value: "cc-envoy"
+                                  - generic_key:
+                                      descriptor_key: "resource"
+                                      descriptor_value: "/hotels/2.1.0/hotels"
+                                  - generic_key:
+                                      descriptor_key: "method"
+                                      descriptor_value: "ALL"
+                                  - generic_key:
+                                      descriptor_key: "policy"
+                                      descriptor_value: "3PerMin"
+                                  - request_headers:
+                                      descriptor_key: "condition"
+                                      header_name: "x-ratelimit-api-policy"
+                          decorator:
+                            operation: "cc-envoy:^/hotels/2.1.0/hotels[/]{0,1}"
+                          typed_per_filter_config:
+                            envoy.filters.http.lua:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.LuaPerRoute"
+                              disabled: true
+                            envoy.filters.http.ext_authz:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute"
+                              check_settings:
+                                context_extensions:
+                                  basePath: "/hotels/2.1.0"
+                                  method: "GET"
+                                  name: "Hotels" # API Name
+                                  path: "/hotels/2.1.0/hotels"
+                                  prodClusterName: "clusterProd_cc-envoy_Hotels2.1.0" # Cluster Name
+                                  sandClusterName: ""
+                                  vHost: "cc-envoy"
+                                  version: "2.1.0"
+                                disable_request_body_buffering: true
+                        - name: Hotels
+                          match:
+                            safe_regex:
+                              google_re2: {}
+                              regex: "^/hotels/2.1.0/hotels/([^/]+)/rate[/]{0,1}"
+                            headers:
+                              - name: ":method"
+                                string_match:
+                                  safe_regex:
+                                    google_re2: {}
+                                    regex: "^GET|POST|DELETE|OPTIONS$"
+                          route:
+                            cluster_header: x-cluster-header
+                            auto_host_rewrite: true
+                            regex_rewrite:
+                              pattern:
+                                google_re2: {}
+                                regex: "^/hotels/2.1.0/hotels/([^/]+)/rate[/]{0,1}"
+                              substitution: "/hotels/2.1.0/hotels/\\1"
+                            timeout: 60s
+                            idle_timeout: 300s
+                            upgrade_configs:
+                              - upgrade_type: websocket
+                                enabled: false
+                            cors:
+                              allow_methods: "GET, PUT, POST, DELETE, PATCH, OPTIONS"
+                              allow_headers: "authorization, Access-Control-Allow-Origin, Content-Type, SOAPAction, apikey, testKey, Internal-Key"
+                              allow_credentials: false
+                              allow_origin_string_match:
+                                - safe_regex:
+                                    google_re2: {}
+                                    regex: ".*"
+                            rate_limits:
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - request_headers:
+                                      descriptor_key: "application"
+                                      header_name: "x-ratelimit-application"
+                                  - request_headers:
+                                      descriptor_key: "policy"
+                                      header_name: "x-ratelimit-application-policy"
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - request_headers:
+                                      descriptor_key: "subscription"
+                                      header_name: "x-ratelimit-subscription"
+                                  - request_headers:
+                                      descriptor_key: "policy"
+                                      header_name: "x-ratelimit-subscription-policy"
+                                  - generic_key:
+                                      descriptor_key: "spike"
+                                      descriptor_value: "true"
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - request_headers:
+                                      descriptor_key: "subscription"
+                                      header_name: "x-ratelimit-subscription"
+                                  - request_headers:
+                                      descriptor_key: "policy"
+                                      header_name: "x-ratelimit-subscription-policy"
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - generic_key:
+                                      descriptor_key: "vhost"
+                                      descriptor_value: "cc-envoy"
+                                  - generic_key:
+                                      descriptor_key: "resource"
+                                      descriptor_value: "/hotels/2.1.0/hotels/{Id}/rate"
+                                  - generic_key:
+                                      descriptor_key: "method"
+                                      descriptor_value: "ALL"
+                                  - generic_key:
+                                      descriptor_key: "policy"
+                                      descriptor_value: "3PerMin"
+                                  - request_headers:
+                                      descriptor_key: "condition"
+                                      header_name: "x-ratelimit-api-policy"
+                          decorator:
+                            operation: "cc-envoy:^/hotels/2.1.0/hotels/([^/]+)/rate[/]{0,1}"
+                          typed_per_filter_config:
+                            envoy.filters.http.lua:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.LuaPerRoute"
+                              disabled: true
+                            envoy.filters.http.ext_authz:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute"
+                              check_settings:
+                                context_extensions:
+                                  basePath: "/hotels/2.1.0"
+                                  method: "GET"
+                                  name: "Hotels" # API Name
+                                  path: "/hotels/2.1.0/hotels/{Id}/rate"
+                                  prodClusterName: "clusterProd_cc-envoy_Hotels2.1.0" # Cluster Name
+                                  sandClusterName: ""
+                                  vHost: "cc-envoy"
+                                  version: "1.0.0"
+                                disable_request_body_buffering: true
+                      # API: Weather
+                        - name: Weather
+                          match:
+                            safe_regex:
+                              google_re2: {}
+                              regex: "^/weather/1.1.0/country/([^/]+)[/]{0,1}"
+                            headers:
+                              - name: ":method"
+                                string_match:
+                                  safe_regex:
+                                    google_re2: {}
+                                    regex: "^GET|OPTIONS$"
+                          route:
+                            cluster_header: x-cluster-header
+                            auto_host_rewrite: true
+                            regex_rewrite:
+                              pattern:
+                                google_re2: {}
+                                regex: "^/weather/1.1.0/country/([^/]+)[/]{0,1}"
+                              substitution: "/weather/1.1.0/country/\\1"
+                            timeout: 60s
+                            idle_timeout: 300s
+                            upgrade_configs:
+                              - upgrade_type: websocket
+                                enabled: false
+                            cors:
+                              allow_methods: "GET, PUT, POST, DELETE, PATCH, OPTIONS"
+                              allow_headers: "authorization, Access-Control-Allow-Origin, Content-Type, SOAPAction, apikey, testKey, Internal-Key"
+                              allow_credentials: false
+                              allow_origin_string_match:
+                                - safe_regex:
+                                    google_re2: {}
+                                    regex: ".*"
+                            rate_limits:
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - request_headers:
+                                      descriptor_key: "application"
+                                      header_name: "x-ratelimit-application"
+                                  - request_headers:
+                                      descriptor_key: "policy"
+                                      header_name: "x-ratelimit-application-policy"
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - request_headers:
+                                      descriptor_key: "subscription"
+                                      header_name: "x-ratelimit-subscription"
+                                  - request_headers:
+                                      descriptor_key: "policy"
+                                      header_name: "x-ratelimit-subscription-policy"
+                                  - generic_key:
+                                      descriptor_key: "spike"
+                                      descriptor_value: "true"
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - request_headers:
+                                      descriptor_key: "subscription"
+                                      header_name: "x-ratelimit-subscription"
+                                  - request_headers:
+                                      descriptor_key: "policy"
+                                      header_name: "x-ratelimit-subscription-policy"
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - generic_key:
+                                      descriptor_key: "vhost"
+                                      descriptor_value: "cc-envoy"
+                                  - generic_key:
+                                      descriptor_key: "resource"
+                                      descriptor_value: "/weather/1.1.0/country/{Id}"
+                                  - request_headers:
+                                      descriptor_key: "method"
+                                      header_name: ":method" # Special change here for HTTP method
+                                  - generic_key:
+                                      descriptor_key: "policy"
+                                      descriptor_value: "3PerMin"
+                                  - request_headers:
+                                      descriptor_key: "condition"
+                                      header_name: "x-ratelimit-api-policy"
+                          decorator:
+                            operation: "cc-envoy:^/weather/1.1.0/country/([^/]+)[/]{0,1}"
+                          typed_per_filter_config:
+                            envoy.filters.http.lua:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.LuaPerRoute"
+                              disabled: true
+                            envoy.filters.http.ext_authz:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute"
+                              check_settings:
+                                context_extensions:
+                                  basePath: "/weather/1.1.0"
+                                  method: "GET"
+                                  name: "Weather" # API Name
+                                  path: "/weather/1.1.0/country/{id}"
+                                  prodClusterName: "clusterProd_cc-envoy_Weather1.1.0" # Cluster Name
+                                  sandClusterName: ""
+                                  vHost: "cc-envoy"
+                                  version: "1.1.0"
+                                disable_request_body_buffering: true
+                        - name: Weather
+                          match:
+                            safe_regex:
+                              google_re2: {}
+                              regex: "^/weather/1.1.0/location[/]{0,1}"
+                            headers:
+                              - name: ":method"
+                                string_match:
+                                  safe_regex:
+                                    google_re2: {}
+                                    regex: "^GET|OPTIONS$"
+                          route:
+                            cluster_header: x-cluster-header
+                            auto_host_rewrite: true
+                            regex_rewrite:
+                              pattern:
+                                google_re2: {}
+                                regex: "^/weather/1.1.0/location[/]{0,1}"
+                              substitution: "/weather/api/v1/location"
+                            timeout: 60s
+                            idle_timeout: 300s
+                            upgrade_configs:
+                              - upgrade_type: websocket
+                                enabled: false
+                            cors:
+                              allow_methods: "GET, PUT, POST, DELETE, PATCH, OPTIONS"
+                              allow_headers: "authorization, Access-Control-Allow-Origin, Content-Type, SOAPAction, apikey, testKey, Internal-Key"
+                              allow_credentials: false
+                              allow_origin_string_match:
+                                - safe_regex:
+                                    google_re2: {}
+                                    regex: ".*"
+                            rate_limits:
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - request_headers:
+                                      descriptor_key: "application"
+                                      header_name: "x-ratelimit-application"
+                                  - request_headers:
+                                      descriptor_key: "policy"
+                                      header_name: "x-ratelimit-application-policy"
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - request_headers:
+                                      descriptor_key: "subscription"
+                                      header_name: "x-ratelimit-subscription"
+                                  - request_headers:
+                                      descriptor_key: "policy"
+                                      header_name: "x-ratelimit-subscription-policy"
+                                  - generic_key:
+                                      descriptor_key: "spike"
+                                      descriptor_value: "true"
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - request_headers:
+                                      descriptor_key: "subscription"
+                                      header_name: "x-ratelimit-subscription"
+                                  - request_headers:
+                                      descriptor_key: "policy"
+                                      header_name: "x-ratelimit-subscription-policy"
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - generic_key:
+                                      descriptor_key: "vhost"
+                                      descriptor_value: "cc-envoy"
+                                  - generic_key:
+                                      descriptor_key: "resource"
+                                      descriptor_value: "/weather/1.1.0/location"
+                                  - request_headers:
+                                      descriptor_key: "method"
+                                      header_name: ":method" # Special change here for HTTP method
+                                  - generic_key:
+                                      descriptor_key: "policy"
+                                      descriptor_value: "3PerMin"
+                                  - request_headers:
+                                      descriptor_key: "condition"
+                                      header_name: "x-ratelimit-api-policy"
+                          decorator:
+                            operation: "cc-envoy:^/weather/1.1.0/location[/]{0,1}"
+                          typed_per_filter_config:
+                            envoy.filters.http.lua:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.LuaPerRoute"
+                              disabled: true
+                            envoy.filters.http.ext_authz:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute"
+                              check_settings:
+                                context_extensions:
+                                  basePath: "/weather/1.1.0"
+                                  method: "GET"
+                                  name: "Weather" # API Name
+                                  path: "/weather/1.1.0/location"
+                                  prodClusterName: "clusterProd_cc-envoy_Weather1.1.0" # Cluster Name
+                                  sandClusterName: ""
+                                  vHost: "cc-envoy"
+                                  version: "1.1.0"
+                                disable_request_body_buffering: true
+                      # API: Pets
+                        - name: Pets
+                          match:
+                            safe_regex:
+                              google_re2: {}
+                              regex: "^/pets/3.1.0/pets[/]{0,1}"
+                            headers:
+                              - name: ":method"
+                                string_match:
+                                  safe_regex:
+                                    google_re2: {}
+                                    regex: "^GET|OPTIONS$"
+                          route:
+                            cluster_header: x-cluster-header
+                            auto_host_rewrite: true
+                            regex_rewrite:
+                              pattern:
+                                google_re2: {}
+                                regex: "^/pets/3.1.0/pets[/]{0,1}"
+                              substitution: "/pets/api/v3/pets"
+                            timeout: 60s
+                            idle_timeout: 300s
+                            upgrade_configs:
+                              - upgrade_type: websocket
+                                enabled: false
+                            cors:
+                              allow_methods: "GET, PUT, POST, DELETE, PATCH, OPTIONS"
+                              allow_headers: "authorization, Access-Control-Allow-Origin, Content-Type, SOAPAction, apikey, testKey, Internal-Key"
+                              allow_credentials: false
+                              allow_origin_string_match:
+                                - safe_regex:
+                                    google_re2: {}
+                                    regex: ".*"
+                            rate_limits:
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - request_headers:
+                                      descriptor_key: "application"
+                                      header_name: "x-ratelimit-application"
+                                  - request_headers:
+                                      descriptor_key: "policy"
+                                      header_name: "x-ratelimit-application-policy"
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - request_headers:
+                                      descriptor_key: "subscription"
+                                      header_name: "x-ratelimit-subscription"
+                                  - request_headers:
+                                      descriptor_key: "policy"
+                                      header_name: "x-ratelimit-subscription-policy"
+                                  - generic_key:
+                                      descriptor_key: "spike"
+                                      descriptor_value: "true"
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - request_headers:
+                                      descriptor_key: "subscription"
+                                      header_name: "x-ratelimit-subscription"
+                                  - request_headers:
+                                      descriptor_key: "policy"
+                                      header_name: "x-ratelimit-subscription-policy"
+                          decorator:
+                            operation: "cc-envoy:^/pets/3.1.0/pets[/]{0,1}"
+                          typed_per_filter_config:
+                            envoy.filters.http.lua:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.LuaPerRoute"
+                              disabled: true
+                            envoy.filters.http.ext_authz:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute"
+                              check_settings:
+                                context_extensions:
+                                  basePath: "/pets/3.1.0"
+                                  method: "GET"
+                                  name: "Pets" # API Name
+                                  path: "/pets/3.1.0/pets"
+                                  prodClusterName: "clusterProd_cc-envoy_Pets3.1.0" # Cluster Name
+                                  sandClusterName: ""
+                                  vHost: "cc-envoy"
+                                  version: "3.1.0"
+                                disable_request_body_buffering: true
+                        - name: Pets
+                          match:
+                            safe_regex:
+                              google_re2: {}
+                              regex: "^/pets/3.1.0/pets/([^/]+)[/]{0,1}"
+                            headers:
+                              - name: ":method"
+                                string_match:
+                                  safe_regex:
+                                    google_re2: {}
+                                    regex: "^GET|OPTIONS$"
+                          route:
+                            cluster_header: x-cluster-header
+                            auto_host_rewrite: true
+                            regex_rewrite:
+                              pattern:
+                                google_re2: {}
+                                regex: "^/pets/3.1.0/pets/([^/]+)[/]{0,1}"
+                              substitution: "/pets/v3/pets/\\1"
+                            timeout: 60s
+                            idle_timeout: 300s
+                            upgrade_configs:
+                              - upgrade_type: websocket
+                                enabled: false
+                            cors:
+                              allow_methods: "GET, PUT, POST, DELETE, PATCH, OPTIONS"
+                              allow_headers: "authorization, Access-Control-Allow-Origin, Content-Type, SOAPAction, apikey, testKey, Internal-Key"
+                              allow_credentials: false
+                              allow_origin_string_match:
+                                - safe_regex:
+                                    google_re2: {}
+                                    regex: ".*"
+                            rate_limits:
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - request_headers:
+                                      descriptor_key: "application"
+                                      header_name: "x-ratelimit-application"
+                                  - request_headers:
+                                      descriptor_key: "policy"
+                                      header_name: "x-ratelimit-application-policy"
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - request_headers:
+                                      descriptor_key: "subscription"
+                                      header_name: "x-ratelimit-subscription"
+                                  - request_headers:
+                                      descriptor_key: "policy"
+                                      header_name: "x-ratelimit-subscription-policy"
+                                  - generic_key:
+                                      descriptor_key: "spike"
+                                      descriptor_value: "true"
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - request_headers:
+                                      descriptor_key: "subscription"
+                                      header_name: "x-ratelimit-subscription"
+                                  - request_headers:
+                                      descriptor_key: "policy"
+                                      header_name: "x-ratelimit-subscription-policy"
+                          decorator:
+                            operation: "cc-envoy:^/pets/3.1.0/pets/([^/]+)[/]{0,1}"
+                          typed_per_filter_config:
+                            envoy.filters.http.lua:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.LuaPerRoute"
+                              disabled: true
+                            envoy.filters.http.ext_authz:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute"
+                              check_settings:
+                                context_extensions:
+                                  basePath: "/pets/3.1.0"
+                                  method: "GET"
+                                  name: "Pets" # API Name
+                                  path: "/pets/3.1.0/pets/{Id}"
+                                  prodClusterName: "clusterProd_cc-envoy_Pets3.1.0" # Cluster Name
+                                  sandClusterName: ""
+                                  vHost: "cc-envoy"
+                                  version: "3.1.0"
                                 disable_request_body_buffering: true
