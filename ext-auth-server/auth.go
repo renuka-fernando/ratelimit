@@ -155,17 +155,21 @@ func getCustomPolicyName(req *envoy_service_auth_v3.CheckRequest, user, app, api
 	} else if api == "SMS" && checkRange(xForwardedFor) {
 		policyName = "c1"
 	} else if strings.Contains(req.Attributes.Request.Http.Path, "/country") {
-		if isOffPeak() {
-			policyName = "c1"
-		} else if req.Attributes.Request.Http.Headers["foo"] == "bar" {
-			policyName = "c2"
+		httpMethod := req.Attributes.Request.Http.Headers[":method"]
+		switch httpMethod {
+		case "GET":
+			if isOffPeak() {
+				policyName = "c1"
+			} else if req.Attributes.Request.Http.Headers["foo"] == "bar" {
+				policyName = "c2"
+			}
+		case "POST":
+			if isOffPeak() && checkRange(xForwardedFor) {
+				policyName = "c1"
+			}
 		}
-	} else if strings.Contains(req.Attributes.Request.Http.Path, "/location") && isOffPeak() && checkRange(xForwardedFor) {
-		policyName = "c1"
 	}
-
 	log.Println("Custom Policy: " + policyName)
-
 	return
 }
 
