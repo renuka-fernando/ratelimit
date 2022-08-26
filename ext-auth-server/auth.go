@@ -26,6 +26,7 @@ var appPolicies = map[string]string{
 	"DaySchedule": "9000PerHour",
 	"FuelPass":    "5PerSec",
 	"MyPet":       "30PerMin",
+	"PerfApp":     "6MPerMin",
 }
 
 var subPolicies = map[string]string{
@@ -35,7 +36,9 @@ var subPolicies = map[string]string{
 	"DaySchedule/SMS":        "100PerMin",
 	"DaySchedule/Weather":    "80PerMin",
 	"FuelPass/SMS":           "100PerMin",
-	"PetsCare/Pets":          "600PerHour",
+	"PetsCare/Pets":          "5KPerMin",
+	"PetsCare2/Pets":         "1KPerMin",
+	"PerfApp/PerfAPI":        "7MPerMin",
 }
 
 // New creates a new authorization server.

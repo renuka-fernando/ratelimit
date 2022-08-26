@@ -13,20 +13,20 @@ descriptors:
               - key: method # method: [ALL|GET|PUT|POST...] (ALL for API level and resource level)
                 descriptors:
                   - key: policy
-                    value: 200PerMin
+                    value: 20KPerMin
                     descriptors:
                       - key: condition
                         value: default
                         rate_limit:
                           unit: minute
-                          requests_per_unit: 200
+                          requests_per_unit: 20000
                       - key: condition
                         value: c1 # we may have to use a UUID instead of C1, C2, ...
                         rate_limit:
-                          unit: second
-                          requests_per_unit: 10
+                          unit: hour
+                          requests_per_unit: 20000
                   - key: policy
-                    value: 150PerMin
+                    value: 1500PerMin
                     descriptors:
                       - key: condition
                         value: default
@@ -85,6 +85,14 @@ descriptors:
                         rate_limit:
                           unit: minute
                           requests_per_unit: 600
+                  - key: policy
+                    value: 5MPerMin
+                    descriptors:
+                      - key: condition
+                        value: default
+                        rate_limit:
+                          unit: minute
+                          requests_per_unit: 5000000
 
       # Subscription level
       - key: subscription # Sends from ext auth service as a header
@@ -139,16 +147,38 @@ descriptors:
               unit: minute
               requests_per_unit: 80
           - key: policy
-            value: 600PerHour
+            value: 5KPerMin
             rate_limit:
-              unit: hour
+              unit: minute
               requests_per_unit: 600
             descriptors:
               - key: spike
                 value: true
                 rate_limit:
-                  unit: minute
-                  requests_per_unit: 20
+                  unit: second
+                  requests_per_unit: 50
+          - key: policy
+            value: 1KPerMin
+            rate_limit:
+              unit: minute
+              requests_per_unit: 600
+            descriptors:
+              - key: spike
+                value: true
+                rate_limit:
+                  unit: second
+                  requests_per_unit: 10
+          - key: policy
+            value: 7MPerMin
+            rate_limit:
+              unit: minute
+              requests_per_unit: 7000000
+            descriptors:
+              - key: spike
+                value: true
+                rate_limit:
+                  unit: second
+                  requests_per_unit: 1000000
 
       # Application level
       - key: application # Sends from ext auth service as a header
@@ -173,3 +203,8 @@ descriptors:
             rate_limit:
               unit: minute
               requests_per_unit: 30
+          - key: policy
+            value: 6MPerMin
+            rate_limit:
+              unit: minute
+              requests_per_unit: 6000000

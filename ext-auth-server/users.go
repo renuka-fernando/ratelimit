@@ -7,7 +7,7 @@ import (
 )
 
 // Users holds a list of users.
-type Users map[string]string
+type Users map[string]struct{}
 
 // Check checks if a key could retrieve a user from a list of users.
 func (u Users) Check(key string) (bool, string, string) {
@@ -16,12 +16,12 @@ func (u Users) Check(key string) (bool, string, string) {
 		return false, "", ""
 	}
 
-	userToken := splits[0]
-	value, ok := u[userToken]
+	userName := splits[0]
+	_, ok := u[userName]
 	if !ok {
 		return false, "", ""
 	}
-	return ok, value, splits[1]
+	return ok, userName, splits[1]
 }
 
 // LoadUsers load users data from a JSON file.
