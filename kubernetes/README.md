@@ -1,5 +1,21 @@
 ## Setup
 
+### Build Images
+
+Execute from root dir.
+
+1.  Rate Limit Service (DO NOT USE THIS FOR TESTING)
+    ```sh
+    build-ratelimit-docker.sh (DO NOT USE THIS FOR TESTING)
+    ```
+
+2.  Ext Auth Service
+    ```sh
+    cd ext-auth-server
+    ./build-ext-auth-docker.sh
+    ```
+
+
 ### Setup Redis Cluster
 
 Create resources in Kubernetes cluster.
@@ -18,6 +34,9 @@ Test the cluster
 
 ```sh
 kubectl exec -it redis-cluster-1 -- bash
+
+redis-cli -c
+keys *
 ```
 
 ### Setup Rate Limit Service and Other Components
@@ -35,4 +54,12 @@ curl localhost:8080/json -d '{
     { "entries": [{ "key": "org", "value": "John" }, {"key":"resource","value":"/foo"}, {"key":"method", "value":"ALL"},{"key":"policy", "value":"3PerMin"}, {"key":"condition", "value":"default"}] }
   ]
 }'
+```
+
+### Delete
+
+#### Redis cluster
+
+```sh
+kubectl delete pvc --all
 ```

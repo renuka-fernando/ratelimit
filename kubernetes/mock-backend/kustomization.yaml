@@ -1,0 +1,9 @@
+configMapGenerator:
+  - name: mock-envoy-yaml
+    behavior: create
+    files:
+      - mock-config.yaml
+
+resources:
+  - mock-backend-deployment.yaml
+  - mock-backend-service.yaml

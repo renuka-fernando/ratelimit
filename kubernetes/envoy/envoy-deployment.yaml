@@ -28,6 +28,12 @@ spec:
             - mountPath: /etc/envoy/envoy.yaml
               subPath: envoy-config.yaml
               name: envoy-yaml-vol
+            - mountPath: /etc/cc/security/keystore/mg.pem
+              subPath: mg.pem
+              name: envoy-certs-vol
+            - mountPath: /etc/cc/security/keystore/mg.key
+              subPath: mg.key
+              name: envoy-certs-vol
           resources:
             requests:
               memory: "500Mi"
@@ -36,24 +42,33 @@ spec:
               memory: "500Mi"
               cpu: "500m"
           ports:
-            - containerPort: 8888 # HTTP port #TODO: HTTP/HTTPS
+            - containerPort: 8888 # HTTPS port
             - containerPort: 8001 # Admin port
           livenessProbe:
             httpGet:
               port: 8888
               path: /ready
-              scheme: HTTP #TODO: HTTP/HTTPS
+              scheme: HTTPS
+              httpHeaders:
+                - name: Host
+                  value: cc-envoy
             failureThreshold: 30
             periodSeconds: 5
           readinessProbe:
             httpGet:
               port: 8888
               path: /ready
-              scheme: HTTP #TODO: HTTP/HTTPS
+              scheme: HTTPS
+              httpHeaders:
+                - name: Host
+                  value: cc-envoy
             failureThreshold: 30
             periodSeconds: 5
       volumes:
         - name: envoy-yaml-vol
           configMap:
             name: envoy-yaml
+        - name: envoy-certs-vol
+          secret:
+            secretName: envoy-certs
       restartPolicy: Always

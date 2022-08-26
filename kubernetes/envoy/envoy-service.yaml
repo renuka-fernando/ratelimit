@@ -5,11 +5,11 @@ metadata:
     app: cc-envoy
   name: cc-envoy
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   selector:
     app: cc-envoy
   ports:
-    - name: "http-listener"
+    - name: "https-listener"
       port: 8888
       targetPort: 8888
       protocol: TCP

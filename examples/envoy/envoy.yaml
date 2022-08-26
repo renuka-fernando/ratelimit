@@ -22,11 +22,11 @@ static_resources:
           - endpoint:
               address:
                 socket_address:
-                  address: 127.0.0.1
+                  address: cc-ext-auth
                   port_value: 9001
     - name: ratelimit
       type: STRICT_DNS
-      connect_timeout: 1s
+      connect_timeout: 20s
       lb_policy: ROUND_ROBIN
       protocol_selection: USE_CONFIGURED_PROTOCOL
       http2_protocol_options: {}
@@ -44,6 +44,9 @@ static_resources:
         "typed_config":
           "@type": "type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext"
           "common_tls_context":
+            "tls_params":
+                "tls_minimum_protocol_version": "TLSv1_2"
+                "tls_maximum_protocol_version": "TLSv1_2"
             "tls_certificates":
               - "certificate_chain":
                   "filename": "/Users/renuka/releases/cc/choreo-connect-1.1.0/docker-compose/resources/router/security/keystore/mg.pem"
@@ -211,8 +214,6 @@ static_resources:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimit
                       domain: default
                       request_type: external
-                      timeout:
-                        seconds: 10 # TODO: REMOVE THIS AFTER TEST
                       stage: 0
                       rate_limited_as_resource_exhausted: false
                       failure_mode_deny: false
@@ -233,127 +234,9 @@ static_resources:
                 route_config:
                   name: route
                   virtual_hosts:
-                    - name: NonRateLimit
-                      domains:
-                        - "non-ratelimit"
-                        - "non-ratelimit:*"
-                      request_headers_to_remove:
-                        - x-cluster-header
-                        - x-ratelimit-api-policy
-                        - x-ratelimit-application
-                        - x-ratelimit-application-policy
-                        - x-ratelimit-subscription
-                        - x-ratelimit-subscription-policy
-                      routes:
-                      # API: NoRateLimitActions
-                        - name: NoRateLimitActions
-                          match:
-                            safe_regex:
-                              google_re2: {}
-                              regex: "^/nonratelimitactions/1.1.1/non[/]{0,1}"
-                            headers:
-                              - name: ":method"
-                                string_match:
-                                  safe_regex:
-                                    google_re2: {}
-                                    regex: "^GET|OPTIONS$"
-                          route:
-                            cluster_header: x-cluster-header
-                            auto_host_rewrite: true
-                            regex_rewrite:
-                              pattern:
-                                google_re2: {}
-                                regex: "^/nonratelimitactions/1.1.1/non[/]{0,1}"
-                              substitution: "/nonratelimit/api/v3/non"
-                            timeout: 60s
-                            idle_timeout: 300s
-                            upgrade_configs:
-                              - upgrade_type: websocket
-                                enabled: false
-                            cors:
-                              allow_methods: "GET, PUT, POST, DELETE, PATCH, OPTIONS"
-                              allow_headers: "authorization, Access-Control-Allow-Origin, Content-Type, SOAPAction, apikey, testKey, Internal-Key"
-                              allow_credentials: false
-                              allow_origin_string_match:
-                                - safe_regex:
-                                    google_re2: {}
-                                    regex: ".*"
-                          decorator:
-                            operation: "non-ratelimit:^/nonratelimitactions/1.1.1/non[/]{0,1}"
-                          typed_per_filter_config:
-                            envoy.filters.http.lua:
-                              "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.LuaPerRoute"
-                              disabled: true
-                            envoy.filters.http.ext_authz:
-                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute"
-                              check_settings:
-                                context_extensions:
-                                  basePath: "/nonratelimitactions/1.1.1"
-                                  method: "GET"
-                                  name: "PeNoRateLimitActionsts" # API Name
-                                  path: "/nonratelimitactions/1.1.1/non"
-                                  prodClusterName: "clusterProd_non-ratelimit_NoRateLimitActions1.1.1" # Cluster Name
-                                  sandClusterName: ""
-                                  vHost: "non-ratelimit"
-                                  version: "1.1.1"
-                                disable_request_body_buffering: true
-                        - name: NonRateLimit
-                          match:
-                            safe_regex:
-                              google_re2: {}
-                              regex: "^/nonratelimitactions/1.1.1/non/([^/]+)[/]{0,1}"
-                            headers:
-                              - name: ":method"
-                                string_match:
-                                  safe_regex:
-                                    google_re2: {}
-                                    regex: "^GET|OPTIONS$"
-                          route:
-                            cluster_header: x-cluster-header
-                            auto_host_rewrite: true
-                            regex_rewrite:
-                              pattern:
-                                google_re2: {}
-                                regex: "^/nonratelimitactions/1.1.1/non/([^/]+)[/]{0,1}"
-                              substitution: "/nonratelimitactions/v3/non/\\1"
-                            timeout: 60s
-                            idle_timeout: 300s
-                            upgrade_configs:
-                              - upgrade_type: websocket
-                                enabled: false
-                            cors:
-                              allow_methods: "GET, PUT, POST, DELETE, PATCH, OPTIONS"
-                              allow_headers: "authorization, Access-Control-Allow-Origin, Content-Type, SOAPAction, apikey, testKey, Internal-Key"
-                              allow_credentials: false
-                              allow_origin_string_match:
-                                - safe_regex:
-                                    google_re2: {}
-                                    regex: ".*"
-                          decorator:
-                            operation: "non-ratelimit:^/nonratelimitactions/1.1.1/non/([^/]+)[/]{0,1}"
-                          typed_per_filter_config:
-                            envoy.filters.http.lua:
-                              "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.LuaPerRoute"
-                              disabled: true
-                            envoy.filters.http.ext_authz:
-                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute"
-                              check_settings:
-                                context_extensions:
-                                  basePath: "/nonratelimitactions/1.1.1"
-                                  method: "GET"
-                                  name: "PeNoRateLimitActionsts" # API Name
-                                  path: "/nonratelimitactions/1.1.1/non"
-                                  prodClusterName: "clusterProd_non-ratelimit_NoRateLimitActions1.1.1" # Cluster Name
-                                  sandClusterName: ""
-                                  vHost: "non-ratelimit"
-                                  version: "1.1.1"
-                                disable_request_body_buffering: true
-
-
-
                     - name: default
                       domains:
-                        - "localhost:*" # TODO: Remove this vhost
+                        - "localhost:*" # TODO REMOVE
                         - "cc-envoy"
                         - "cc-envoy:*"
                       request_headers_to_remove:
@@ -415,6 +298,9 @@ static_resources:
                             envoy.filters.http.lua:
                               "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.LuaPerRoute"
                               disabled: true
+                            envoy.filters.http.ratelimit:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimitPerRoute"
+                              vh_rate_limits: IGNORE # Ignore Vhost rate limits
                       # Ready
                         - name: ready
                           match:
@@ -432,6 +318,9 @@ static_resources:
                             envoy.filters.http.lua:
                               "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.LuaPerRoute"
                               disabled: true
+                            envoy.filters.http.ratelimit:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimitPerRoute"
+                              vh_rate_limits: IGNORE # Ignore Vhost rate limits
                       # API: SMS
                         - name: sms
                           match:
@@ -465,7 +354,6 @@ static_resources:
                                 - safe_regex:
                                     google_re2: {}
                                     regex: ".*"
-                            include_vh_rate_limits: true
                             rate_limits:
                               - actions:
                                   - generic_key:
@@ -505,6 +393,9 @@ static_resources:
                                   vHost: "cc-envoy"
                                   version: "2.0.0"
                                 disable_request_body_buffering: true
+                            envoy.filters.http.ratelimit:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimitPerRoute"
+                              vh_rate_limits: INCLUDE
                       # API: PizzaShack
                         - name: PizzaShack
                           match:
@@ -538,7 +429,6 @@ static_resources:
                                 - safe_regex:
                                     google_re2: {}
                                     regex: ".*"
-                            include_vh_rate_limits: true
                             rate_limits:
                               - actions:
                                   - generic_key:
@@ -578,6 +468,9 @@ static_resources:
                                   vHost: "cc-envoy"
                                   version: "1.0.0"
                                 disable_request_body_buffering: true
+                            envoy.filters.http.ratelimit:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimitPerRoute"
+                              vh_rate_limits: INCLUDE
                         - name: PizzaShack
                           match:
                             safe_regex:
@@ -610,7 +503,6 @@ static_resources:
                                 - safe_regex:
                                     google_re2: {}
                                     regex: ".*"
-                            include_vh_rate_limits: true
                             rate_limits:
                               - actions:
                                   - generic_key:
@@ -650,6 +542,9 @@ static_resources:
                                   vHost: "cc-envoy"
                                   version: "1.0.0"
                                 disable_request_body_buffering: true
+                            envoy.filters.http.ratelimit:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimitPerRoute"
+                              vh_rate_limits: INCLUDE
                       # API: Hotels
                         - name: Hotels
                           match:
@@ -683,7 +578,6 @@ static_resources:
                                 - safe_regex:
                                     google_re2: {}
                                     regex: ".*"
-                            include_vh_rate_limits: true
                             rate_limits:
                               - actions:
                                   - generic_key:
@@ -723,6 +617,9 @@ static_resources:
                                   vHost: "cc-envoy"
                                   version: "2.1.0"
                                 disable_request_body_buffering: true
+                            envoy.filters.http.ratelimit:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimitPerRoute"
+                              vh_rate_limits: INCLUDE
                         - name: Hotels
                           match:
                             safe_regex:
@@ -755,7 +652,6 @@ static_resources:
                                 - safe_regex:
                                     google_re2: {}
                                     regex: ".*"
-                            include_vh_rate_limits: true
                             rate_limits:
                               - actions:
                                   - generic_key:
@@ -795,6 +691,9 @@ static_resources:
                                   vHost: "cc-envoy"
                                   version: "1.0.0"
                                 disable_request_body_buffering: true
+                            envoy.filters.http.ratelimit:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimitPerRoute"
+                              vh_rate_limits: INCLUDE
                       # API: Weather
                         - name: Weather
                           match:
@@ -828,7 +727,6 @@ static_resources:
                                 - safe_regex:
                                     google_re2: {}
                                     regex: ".*"
-                            include_vh_rate_limits: true
                             rate_limits:
                               - actions:
                                   - generic_key:
@@ -868,6 +766,9 @@ static_resources:
                                   vHost: "cc-envoy"
                                   version: "1.1.0"
                                 disable_request_body_buffering: true
+                            envoy.filters.http.ratelimit:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimitPerRoute"
+                              vh_rate_limits: INCLUDE
                       # API: Pets
                         - name: Pets
                           match:
@@ -1004,7 +905,6 @@ static_resources:
                                 - safe_regex:
                                     google_re2: {}
                                     regex: ".*"
-                            include_vh_rate_limits: true
                             rate_limits:
                               - actions:
                                   - generic_key:
@@ -1044,6 +944,9 @@ static_resources:
                                   vHost: "cc-envoy"
                                   version: "2.1.1"
                                 disable_request_body_buffering: true
+                            envoy.filters.http.ratelimit:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimitPerRoute"
+                              vh_rate_limits: INCLUDE
                         - name: PerfAPI
                           match:
                             safe_regex:
@@ -1076,7 +979,6 @@ static_resources:
                                 - safe_regex:
                                     google_re2: {}
                                     regex: ".*"
-                            include_vh_rate_limits: true
                             rate_limits:
                               - actions:
                                   - generic_key:
@@ -1116,7 +1018,118 @@ static_resources:
                                   vHost: "cc-envoy"
                                   version: "2.1.1"
                                 disable_request_body_buffering: true
-
+                            envoy.filters.http.ratelimit:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimitPerRoute"
+                              vh_rate_limits: INCLUDE
+                      # API: NoRateLimitActions
+                        - name: NoRateLimitActions
+                          match:
+                            safe_regex:
+                              google_re2: {}
+                              regex: "^/nonratelimitactions/1.1.1/non[/]{0,1}"
+                            headers:
+                              - name: ":method"
+                                string_match:
+                                  safe_regex:
+                                    google_re2: {}
+                                    regex: "^GET|OPTIONS$"
+                          route:
+                            cluster_header: x-cluster-header
+                            auto_host_rewrite: true
+                            regex_rewrite:
+                              pattern:
+                                google_re2: {}
+                                regex: "^/nonratelimitactions/1.1.1/non[/]{0,1}"
+                              substitution: "/nonratelimit/api/v3/non"
+                            timeout: 60s
+                            idle_timeout: 300s
+                            upgrade_configs:
+                              - upgrade_type: websocket
+                                enabled: false
+                            cors:
+                              allow_methods: "GET, PUT, POST, DELETE, PATCH, OPTIONS"
+                              allow_headers: "authorization, Access-Control-Allow-Origin, Content-Type, SOAPAction, apikey, testKey, Internal-Key"
+                              allow_credentials: false
+                              allow_origin_string_match:
+                                - safe_regex:
+                                    google_re2: {}
+                                    regex: ".*"
+                          decorator:
+                            operation: "non-ratelimit:^/nonratelimitactions/1.1.1/non[/]{0,1}"
+                          typed_per_filter_config:
+                            envoy.filters.http.lua:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.LuaPerRoute"
+                              disabled: true
+                            envoy.filters.http.ext_authz:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute"
+                              check_settings:
+                                context_extensions:
+                                  basePath: "/nonratelimitactions/1.1.1"
+                                  method: "GET"
+                                  name: "PeNoRateLimitActionsts" # API Name
+                                  path: "/nonratelimitactions/1.1.1/non"
+                                  prodClusterName: "clusterProd_non-ratelimit_NoRateLimitActions1.1.1" # Cluster Name
+                                  sandClusterName: ""
+                                  vHost: "non-ratelimit"
+                                  version: "1.1.1"
+                                disable_request_body_buffering: true
+                            envoy.filters.http.ratelimit:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimitPerRoute"
+                              vh_rate_limits: IGNORE # Ignore Vhost rate limits
+                        - name: NonRateLimit
+                          match:
+                            safe_regex:
+                              google_re2: {}
+                              regex: "^/nonratelimitactions/1.1.1/non/([^/]+)[/]{0,1}"
+                            headers:
+                              - name: ":method"
+                                string_match:
+                                  safe_regex:
+                                    google_re2: {}
+                                    regex: "^GET|OPTIONS$"
+                          route:
+                            cluster_header: x-cluster-header
+                            auto_host_rewrite: true
+                            regex_rewrite:
+                              pattern:
+                                google_re2: {}
+                                regex: "^/nonratelimitactions/1.1.1/non/([^/]+)[/]{0,1}"
+                              substitution: "/nonratelimitactions/v3/non/\\1"
+                            timeout: 60s
+                            idle_timeout: 300s
+                            upgrade_configs:
+                              - upgrade_type: websocket
+                                enabled: false
+                            cors:
+                              allow_methods: "GET, PUT, POST, DELETE, PATCH, OPTIONS"
+                              allow_headers: "authorization, Access-Control-Allow-Origin, Content-Type, SOAPAction, apikey, testKey, Internal-Key"
+                              allow_credentials: false
+                              allow_origin_string_match:
+                                - safe_regex:
+                                    google_re2: {}
+                                    regex: ".*"
+                          decorator:
+                            operation: "non-ratelimit:^/nonratelimitactions/1.1.1/non/([^/]+)[/]{0,1}"
+                          typed_per_filter_config:
+                            envoy.filters.http.lua:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.LuaPerRoute"
+                              disabled: true
+                            envoy.filters.http.ext_authz:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute"
+                              check_settings:
+                                context_extensions:
+                                  basePath: "/nonratelimitactions/1.1.1"
+                                  method: "GET"
+                                  name: "PeNoRateLimitActionsts" # API Name
+                                  path: "/nonratelimitactions/1.1.1/non"
+                                  prodClusterName: "clusterProd_non-ratelimit_NoRateLimitActions1.1.1" # Cluster Name
+                                  sandClusterName: ""
+                                  vHost: "non-ratelimit"
+                                  version: "1.1.1"
+                                disable_request_body_buffering: true
+                            envoy.filters.http.ratelimit:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimitPerRoute"
+                              vh_rate_limits: IGNORE # Ignore Vhost rate limits
 
 ########################################################################## Generated Routes ##########################################################################
 ########################################################################## Generated Routes ##########################################################################

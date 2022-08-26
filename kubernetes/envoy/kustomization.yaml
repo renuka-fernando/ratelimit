@@ -1,0 +1,16 @@
+configMapGenerator:
+  - name: envoy-yaml
+    behavior: create
+    files:
+      - envoy-config.yaml
+
+secretGenerator:
+  - name: envoy-certs
+    files:
+    - certs/mg.pem
+    - certs/mg.key
+
+resources:
+  # cms
+  - envoy-deployment.yaml # TODO: do not need prom/statsd-exporter:v0.18.0
+  - envoy-service.yaml
