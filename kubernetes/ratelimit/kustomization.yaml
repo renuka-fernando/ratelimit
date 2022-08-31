@@ -1,0 +1,15 @@
+configMapGenerator:
+  - name: ratelimit-config
+    behavior: create
+    files:
+      - ratelimit-config.yaml
+
+secretGenerator:
+  - name: ratelimit-certs
+    files:
+    - certs/mg.pem
+    - certs/mg.key
+
+resources:
+  - ratelimit-deployment.yaml
+  - ratelimit-service.yaml

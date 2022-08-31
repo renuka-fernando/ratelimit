@@ -27,7 +27,7 @@ kubectl apply -k redis
 Initialize Redis cluster (This is a onetime).
 
 ```sh
-kubectl exec -it redis-cluster-0 -- redis-cli --cluster create $(kubectl get pods  -l app=redis-cluster -o json | jq -r '.items | map(.status.podIP) | join(":6379 ")'):6379 --cluster-replicas 1 -a password123
+kubectl exec -it redis-cluster-0 -- redis-cli --cluster create $(kubectl get pods  -l app=redis-cluster -o json | jq -r '.items | map(.status.podIP) | join(":6379 ")'):6379 --cluster-replicas 0 -a password123
 ```
 
 Test the cluster

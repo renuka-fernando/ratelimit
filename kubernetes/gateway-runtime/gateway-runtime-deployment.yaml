@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: cc-envoy
+  name: gateway-runtime
 spec:
-  replicas: 3
+  replicas: 2
   selector:
     matchLabels:
-      app: cc-envoy
+      app: gateway-runtime
   template:
     metadata:
       labels:
-        app: cc-envoy
+        app: gateway-runtime
       annotations: {}
     spec:
       containers:
@@ -64,6 +64,23 @@ spec:
                   value: cc-envoy
             failureThreshold: 30
             periodSeconds: 5
+        - name: cc-ext-auth
+          image: renukafernando/envoy-ratelimit-ext-auth:master
+          imagePullPolicy: IfNotPresent
+          command: []
+          volumeMounts:
+            - mountPath: /etc/users.json
+              subPath: users.json
+              name: users-vol
+          resources:
+            requests:
+              memory: "500Mi"
+              cpu: "500m"
+            limits:
+              memory: "500Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 9001 # gRPC
       volumes:
         - name: envoy-yaml-vol
           configMap:
@@ -71,4 +88,7 @@ spec:
         - name: envoy-certs-vol
           secret:
             secretName: envoy-certs
+        - name: users-vol
+          configMap:
+            name: users-json
       restartPolicy: Always

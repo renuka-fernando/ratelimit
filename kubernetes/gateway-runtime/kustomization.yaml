@@ -1,0 +1,5 @@
+resources:
+  - envoy
+  - ext-auth-service
+  - gateway-runtime-deployment.yaml
+  - gateway-runtime-service.yaml

@@ -22,7 +22,7 @@ static_resources:
           - endpoint:
               address:
                 socket_address:
-                  address: cc-ext-auth
+                  address: 127.0.0.1
                   port_value: 9001
     - name: ratelimit
       type: STRICT_DNS

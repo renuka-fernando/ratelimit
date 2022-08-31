@@ -1,6 +1,5 @@
 resources:
-  - envoy
-  - ext-auth-service
+  - gateway-runtime
   - ratelimit
   - mock-backend
 

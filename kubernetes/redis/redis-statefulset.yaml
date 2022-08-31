@@ -8,7 +8,8 @@ spec:
   selector:
     matchLabels:
       app: redis-cluster
-  replicas: 6
+  # replicas: 6
+  replicas: 3
   serviceName: redis-cluster-headless
   podManagementPolicy: Parallel
   template:
@@ -104,7 +105,9 @@ spec:
           app: redis-cluster
       spec:
         accessModes:
-          - "ReadWriteOnce"
+          - "ReadWriteMany"
+        # storageClassName: my-azurefile-csi
+        storageClassName: azurefile-csi
         resources:
           requests:
             storage: "1Gi"

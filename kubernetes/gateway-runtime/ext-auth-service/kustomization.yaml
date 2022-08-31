@@ -3,7 +3,3 @@ configMapGenerator:
     behavior: create
     files:
       - users.json
-
-resources:
-  - ext-auth-deployment.yaml
-  - ext-auth-service.yaml
