@@ -4,10 +4,14 @@ metadata:
   labels:
     app: gateway-runtime
   name: gateway-runtime
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-internal-subnet: "aks-subnet"
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
 spec:
   type: LoadBalancer
   selector:
     app: gateway-runtime
+  loadBalancerIP: 10.224.1.2
   ports:
     - name: "https-listener"
       port: 8888

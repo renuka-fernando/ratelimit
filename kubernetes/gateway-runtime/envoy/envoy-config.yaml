@@ -7,24 +7,24 @@ admin:
 
 static_resources:
   clusters:
-    - name: ext_authz-grpc-service
-      type: STRICT_DNS
-      connect_timeout: 20s
-      lb_policy: ROUND_ROBIN
-      typed_extension_protocol_options:
-        envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
-          "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
-          explicit_http_config:
-            http2_protocol_options: {}
-      load_assignment:
-        cluster_name: ext_authz-grpc-service
-        endpoints:
-        - lb_endpoints:
-          - endpoint:
-              address:
-                socket_address:
-                  address: 127.0.0.1
-                  port_value: 9001
+    # - name: ext_authz-grpc-service
+    #   type: STRICT_DNS
+    #   connect_timeout: 20s
+    #   lb_policy: ROUND_ROBIN
+    #   typed_extension_protocol_options:
+    #     envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+    #       "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+    #       explicit_http_config:
+    #         http2_protocol_options: {}
+    #   load_assignment:
+    #     cluster_name: ext_authz-grpc-service
+    #     endpoints:
+    #     - lb_endpoints:
+    #       - endpoint:
+    #           address:
+    #             socket_address:
+    #               address: 127.0.0.1
+    #               port_value: 9001
     - name: ratelimit
       type: STRICT_DNS
       connect_timeout: 20s
@@ -148,14 +148,14 @@ static_resources:
                     socket_address:
                       address: mock-backend
                       port_value: 9999
-    - name: clusterProd_non-ratelimit_NoRateLimitActions1.1.1
+    - name: clusterProd_cc-envoy_NoRateLimitActions1.1.1
       connect_timeout: 20s
       dns_refresh_rate: 5s
       dns_lookup_family: V4_ONLY
       type: STRICT_DNS
       lb_policy: ROUND_ROBIN
       load_assignment:
-        cluster_name: clusterProd_non-ratelimit_NoRateLimitActions1.1.1
+        cluster_name: clusterProd_cc-envoy_NoRateLimitActions1.1.1
         endpoints:
           - lb_endpoints:
               - endpoint:
@@ -198,15 +198,15 @@ static_resources:
                 http_filters:
                   - name: envoy.filters.http.cors
                     typed_config: {}
-                  - name: envoy.filters.http.ext_authz
-                    typed_config:
-                      "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
-                      grpc_service:
-                        envoy_grpc:
-                          cluster_name: ext_authz-grpc-service
-                        timeout: 20s
-                      transport_api_version: V3
-                      clear_route_cache: true
+                  # - name: envoy.filters.http.ext_authz
+                  #   typed_config:
+                  #     "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+                  #     grpc_service:
+                  #       envoy_grpc:
+                  #         cluster_name: ext_authz-grpc-service
+                  #       timeout: 20s
+                  #     transport_api_version: V3
+                  #     clear_route_cache: true
                   - name: envoy.filters.http.ratelimit
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimit
@@ -818,6 +818,9 @@ static_resources:
                                   vHost: "cc-envoy"
                                   version: "3.1.0"
                                 disable_request_body_buffering: true
+                            envoy.filters.http.ratelimit:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimitPerRoute"
+                              vh_rate_limits: INCLUDE
                         - name: Pets
                           match:
                             safe_regex:
@@ -869,6 +872,9 @@ static_resources:
                                   vHost: "cc-envoy"
                                   version: "3.1.0"
                                 disable_request_body_buffering: true
+                            envoy.filters.http.ratelimit:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimitPerRoute"
+                              vh_rate_limits: INCLUDE
                       # API: PerfAPI
                         - name: PerfAPI
                           match:
@@ -1359,7 +1365,7 @@ static_resources:
                                 context_extensions:
                                   basePath: "/nonratelimitactions/1.1.1"
                                   method: "GET"
-                                  name: "PeNoRateLimitActionsts" # API Name
+                                  name: "NoRateLimitActions" # API Name
                                   path: "/nonratelimitactions/1.1.1/non"
                                   prodClusterName: "clusterProd_cc-envoy_NoRateLimitActions1.1.1" # Cluster Name
                                   sandClusterName: ""
@@ -1413,9 +1419,9 @@ static_resources:
                                 context_extensions:
                                   basePath: "/nonratelimitactions/1.1.1"
                                   method: "GET"
-                                  name: "PeNoRateLimitActionsts" # API Name
+                                  name: "NoRateLimitActions" # API Name
                                   path: "/nonratelimitactions/1.1.1/non"
-                                  prodClusterName: "clusterProd_cc-envoyt_NoRateLimitActions1.1.1" # Cluster Name
+                                  prodClusterName: "clusterProd_cc-envoy_NoRateLimitActions1.1.1" # Cluster Name
                                   sandClusterName: ""
                                   vHost: "cc-envoy"
                                   version: "1.1.1"

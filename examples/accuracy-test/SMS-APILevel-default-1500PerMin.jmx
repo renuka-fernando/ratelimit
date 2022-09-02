@@ -29,24 +29,20 @@
       <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
         <collectionProp name="HeaderManager.headers">
           <elementProp name="" elementType="Header">
-            <stringProp name="Header.name">Authorization</stringProp>
-            <stringProp name="Header.value">Bearer user4.Today</stringProp>
-          </elementProp>
-          <elementProp name="" elementType="Header">
             <stringProp name="Header.name">Host</stringProp>
             <stringProp name="Header.value">cc-envoy</stringProp>
           </elementProp>
         </collectionProp>
       </HeaderManager>
       <hashTree/>
-      <kg.apc.jmeter.threads.UltimateThreadGroup guiclass="kg.apc.jmeter.threads.UltimateThreadGroupGui" testclass="kg.apc.jmeter.threads.UltimateThreadGroup" testname="PerfTestWithoutRateLimitActions" enabled="true">
+      <kg.apc.jmeter.threads.UltimateThreadGroup guiclass="kg.apc.jmeter.threads.UltimateThreadGroupGui" testclass="kg.apc.jmeter.threads.UltimateThreadGroup" testname="AccuracyTest" enabled="true">
         <collectionProp name="ultimatethreadgroupdata">
-          <collectionProp name="-1914443446">
+          <collectionProp name="-1914408055">
             <stringProp name="1730416782">${__P(userCount,100)}</stringProp>
             <stringProp name="0">0</stringProp>
             <stringProp name="1722">60</stringProp>
             <stringProp name="1975169975">${__P(duration,150)}</stringProp>
-            <stringProp name="1629">30</stringProp>
+            <stringProp name="1722">60</stringProp>
           </collectionProp>
         </collectionProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
@@ -66,26 +62,24 @@
           <intProp name="Assertion.test_type">1</intProp>
         </ResponseAssertion>
         <hashTree/>
-        <GenericController guiclass="LogicControllerGui" testclass="GenericController" testname="NoRateLimitActions" enabled="true"/>
+        <GenericController guiclass="LogicControllerGui" testclass="GenericController" testname="SMS-APILevel-default-1500PerMin" enabled="true"/>
         <hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="HTTP Request" enabled="true">
-            <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
-              <collectionProp name="Arguments.arguments"/>
-            </elementProp>
-            <stringProp name="HTTPSampler.domain"></stringProp>
-            <stringProp name="HTTPSampler.port"></stringProp>
-            <stringProp name="HTTPSampler.protocol"></stringProp>
-            <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-            <stringProp name="HTTPSampler.path">/nonratelimitactions/1.1.1/non</stringProp>
-            <stringProp name="HTTPSampler.method">GET</stringProp>
-            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
-            <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
-            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
-            <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
-            <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
-            <stringProp name="HTTPSampler.connect_timeout"></stringProp>
-            <stringProp name="HTTPSampler.response_timeout"></stringProp>
-          </HTTPSamplerProxy>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Authorization</stringProp>
+                <stringProp name="Header.value">Bearer user1.Today</stringProp>
+              </elementProp>
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">x-cluster-header</stringProp>
+                <stringProp name="Header.value">clusterProd_cc-envoy_SMS2.0.0</stringProp>
+              </elementProp>
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">x-ratelimit-api-policy</stringProp>
+                <stringProp name="Header.value">default</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
           <hashTree/>
           <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="HTTP Request" enabled="true">
             <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
@@ -95,8 +89,8 @@
             <stringProp name="HTTPSampler.port"></stringProp>
             <stringProp name="HTTPSampler.protocol"></stringProp>
             <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-            <stringProp name="HTTPSampler.path">/nonratelimitactions/1.1.1/non/123</stringProp>
-            <stringProp name="HTTPSampler.method">GET</stringProp>
+            <stringProp name="HTTPSampler.path">/sms/2.0.0/text</stringProp>
+            <stringProp name="HTTPSampler.method">POST</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
             <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
@@ -141,7 +135,7 @@
                 <connectTime>true</connectTime>
               </value>
             </objProp>
-            <stringProp name="filename">/home/renuka/test-results/jtl/perf/withoutratelimit/NoRateLimitActions.jtl</stringProp>
+            <stringProp name="filename">/home/renuka/test-results/jtl/accuracy/SMS-APILevel-default-1500PerMin.jtl</stringProp>
           </ResultCollector>
           <hashTree/>
         </hashTree>

@@ -3,7 +3,6 @@ package authsample
 import (
 	"bytes"
 	"context"
-	"log"
 	"net"
 	"strings"
 	"time"
@@ -137,7 +136,6 @@ func (s *server) Check(
 				// 	},
 				// },
 			}
-			log.Printf("Response: %v", resp)
 			return resp, nil
 		}
 	}
@@ -172,7 +170,6 @@ func getCustomPolicyName(req *envoy_service_auth_v3.CheckRequest, user, app, api
 			}
 		}
 	}
-	log.Println("Custom Policy: " + policyName)
 	return
 }
 
@@ -182,14 +179,11 @@ func checkRange(ip string) bool {
 
 	trial := net.ParseIP(ip)
 	if trial.To4() == nil {
-		log.Printf("%v is not an IPv4 address\n", trial)
 		return false
 	}
 	if bytes.Compare(trial, ip1) >= 0 && bytes.Compare(trial, ip2) <= 0 {
-		log.Printf("%v is between %v and %v\n", trial, ip1, ip2)
 		return true
 	}
-	log.Printf("%v is NOT between %v and %v\n", trial, ip1, ip2)
 	return false
 }
 

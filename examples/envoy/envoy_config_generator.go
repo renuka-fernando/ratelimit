@@ -144,10 +144,10 @@ var clusterTemp = `
 func main() {
 	fmt.Println("Starting")
 
-	fRoutes, err := os.Create("envoy-config-routes.yaml")
+	fRoutes, err := os.Create("generated-envoy-config-routes.yaml")
 	check(err)
 
-	fClusters, err := os.Create("envoy-config-clusters.yaml")
+	fClusters, err := os.Create("generated-envoy-config-clusters.yaml")
 	check(err)
 
 	tRoutes, err := template.New("Routes").Parse(routeTemp)
