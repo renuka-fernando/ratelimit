@@ -4,11 +4,9 @@ resources:
   - mock-backend
 
 replicas:
-  - name: cc-envoy
-    count: 1
-  - name: cc-ext-auth
-    count: 1
+  - name: gateway-runtime
+    count: 2
   - name: mock-backend
-    count: 1
+    count: 2
   - name: ratelimit
-    count: 1
+    count: 2

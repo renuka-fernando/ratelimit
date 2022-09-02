@@ -9,6 +9,7 @@ static_resources:
   clusters:
     - name: ext_authz-grpc-service
       type: STRICT_DNS
+      connect_timeout: 20s
       lb_policy: ROUND_ROBIN
       typed_extension_protocol_options:
         envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
@@ -203,9 +204,8 @@ static_resources:
                       grpc_service:
                         envoy_grpc:
                           cluster_name: ext_authz-grpc-service
-                        timeout: 0.250s
+                        timeout: 20s
                       transport_api_version: V3
-                      include_peer_certificate: true
                       clear_route_cache: true
                   - name: envoy.filters.http.ratelimit
                     typed_config:
@@ -880,7 +880,7 @@ static_resources:
                                 string_match:
                                   safe_regex:
                                     google_re2: {}
-                                    regex: "^GET|OPTIONS$"
+                                    regex: "^GET|POST|OPTIONS$"
                           route:
                             cluster_header: x-cluster-header
                             auto_host_rewrite: true
@@ -912,10 +912,10 @@ static_resources:
                                       descriptor_value: "cc-envoy"
                                   - generic_key:
                                       descriptor_key: "resource"
-                                      descriptor_value: "/perfapi/2.1.1"
-                                  - generic_key:
+                                      descriptor_value: "/perfapi/2.1.1/perf"
+                                  - request_headers:
                                       descriptor_key: "method"
-                                      descriptor_value: "ALL"
+                                      header_name: ":method" # Special change here for HTTP method
                                   - generic_key:
                                       descriptor_key: "policy"
                                       descriptor_value: "5MPerMin"
@@ -933,7 +933,7 @@ static_resources:
                               check_settings:
                                 context_extensions:
                                   basePath: "/perfapi/2.1.1"
-                                  method: "GET"
+                                  method: "GET POST"
                                   name: "PerfAPI" # API Name
                                   path: "/perfapi/2.1.1/perf"
                                   prodClusterName: "clusterProd_cc-envoy_PerfAPI2.1.1" # Cluster Name
@@ -986,10 +986,10 @@ static_resources:
                                       descriptor_value: "cc-envoy"
                                   - generic_key:
                                       descriptor_key: "resource"
-                                      descriptor_value: "/perfapi/2.1.1"
-                                  - generic_key:
+                                      descriptor_value: "/perfapi/2.1.1/perf/{Id}"
+                                  - request_headers:
                                       descriptor_key: "method"
-                                      descriptor_value: "ALL"
+                                      header_name: ":method" # Special change here for HTTP method
                                   - generic_key:
                                       descriptor_key: "policy"
                                       descriptor_value: "5MPerMin"
@@ -1010,6 +1010,302 @@ static_resources:
                                   method: "GET"
                                   name: "PerfAPI" # API Name
                                   path: "/perfapi/2.1.1/perf"
+                                  prodClusterName: "clusterProd_cc-envoy_PerfAPI2.1.1" # Cluster Name
+                                  sandClusterName: ""
+                                  vHost: "cc-envoy"
+                                  version: "2.1.1"
+                                disable_request_body_buffering: true
+                            envoy.filters.http.ratelimit:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimitPerRoute"
+                              vh_rate_limits: INCLUDE
+                        - name: PerfAPI
+                          match:
+                            safe_regex:
+                              google_re2: {}
+                              regex: "^/perfapi/2.1.1/perf2[/]{0,1}"
+                            headers:
+                              - name: ":method"
+                                string_match:
+                                  safe_regex:
+                                    google_re2: {}
+                                    regex: "^GET|POST|OPTIONS$"
+                          route:
+                            cluster_header: x-cluster-header
+                            auto_host_rewrite: true
+                            regex_rewrite:
+                              pattern:
+                                google_re2: {}
+                                regex: "^/perfapi/2.1.1/perf2[/]{0,1}"
+                              substitution: "/perf/api/v3/perf"
+                            timeout: 60s
+                            idle_timeout: 300s
+                            upgrade_configs:
+                              - upgrade_type: websocket
+                                enabled: false
+                            cors:
+                              allow_methods: "GET, PUT, POST, DELETE, PATCH, OPTIONS"
+                              allow_headers: "authorization, Access-Control-Allow-Origin, Content-Type, SOAPAction, apikey, testKey, Internal-Key"
+                              allow_credentials: false
+                              allow_origin_string_match:
+                                - safe_regex:
+                                    google_re2: {}
+                                    regex: ".*"
+                            rate_limits:
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - generic_key:
+                                      descriptor_key: "vhost"
+                                      descriptor_value: "cc-envoy"
+                                  - generic_key:
+                                      descriptor_key: "resource"
+                                      descriptor_value: "/perfapi/2.1.1/perf2"
+                                  - request_headers:
+                                      descriptor_key: "method"
+                                      header_name: ":method" # Special change here for HTTP method
+                                  - generic_key:
+                                      descriptor_key: "policy"
+                                      descriptor_value: "5MPerMin"
+                                  - request_headers:
+                                      descriptor_key: "condition"
+                                      header_name: "x-ratelimit-api-policy"
+                          decorator:
+                            operation: "cc-envoy:^/perfapi/2.1.1/perf2[/]{0,1}"
+                          typed_per_filter_config:
+                            envoy.filters.http.lua:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.LuaPerRoute"
+                              disabled: true
+                            envoy.filters.http.ext_authz:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute"
+                              check_settings:
+                                context_extensions:
+                                  basePath: "/perfapi/2.1.1"
+                                  method: "GET POST"
+                                  name: "PerfAPI" # API Name
+                                  path: "/perfapi/2.1.1/perf2"
+                                  prodClusterName: "clusterProd_cc-envoy_PerfAPI2.1.1" # Cluster Name
+                                  sandClusterName: ""
+                                  vHost: "cc-envoy"
+                                  version: "2.1.1"
+                                disable_request_body_buffering: true
+                            envoy.filters.http.ratelimit:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimitPerRoute"
+                              vh_rate_limits: INCLUDE
+                        - name: PerfAPI
+                          match:
+                            safe_regex:
+                              google_re2: {}
+                              regex: "^/perfapi/2.1.1/perf2/([^/]+)[/]{0,1}"
+                            headers:
+                              - name: ":method"
+                                string_match:
+                                  safe_regex:
+                                    google_re2: {}
+                                    regex: "^GET|OPTIONS$"
+                          route:
+                            cluster_header: x-cluster-header
+                            auto_host_rewrite: true
+                            regex_rewrite:
+                              pattern:
+                                google_re2: {}
+                                regex: "^/perfapi/2.1.1/perf2/([^/]+)[/]{0,1}"
+                              substitution: "/perf/v3/perf/\\1"
+                            timeout: 60s
+                            idle_timeout: 300s
+                            upgrade_configs:
+                              - upgrade_type: websocket
+                                enabled: false
+                            cors:
+                              allow_methods: "GET, PUT, POST, DELETE, PATCH, OPTIONS"
+                              allow_headers: "authorization, Access-Control-Allow-Origin, Content-Type, SOAPAction, apikey, testKey, Internal-Key"
+                              allow_credentials: false
+                              allow_origin_string_match:
+                                - safe_regex:
+                                    google_re2: {}
+                                    regex: ".*"
+                            rate_limits:
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - generic_key:
+                                      descriptor_key: "vhost"
+                                      descriptor_value: "cc-envoy"
+                                  - generic_key:
+                                      descriptor_key: "resource"
+                                      descriptor_value: "/perfapi/2.1.1/perf2/{Id}"
+                                  - request_headers:
+                                      descriptor_key: "method"
+                                      header_name: ":method" # Special change here for HTTP method
+                                  - generic_key:
+                                      descriptor_key: "policy"
+                                      descriptor_value: "5MPerMin"
+                                  - request_headers:
+                                      descriptor_key: "condition"
+                                      header_name: "x-ratelimit-api-policy"
+                          decorator:
+                            operation: "cc-envoy:^/perfapi/2.1.1/perf2/([^/]+)[/]{0,1}"
+                          typed_per_filter_config:
+                            envoy.filters.http.lua:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.LuaPerRoute"
+                              disabled: true
+                            envoy.filters.http.ext_authz:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute"
+                              check_settings:
+                                context_extensions:
+                                  basePath: "/perfapi/2.1.1"
+                                  method: "GET"
+                                  name: "PerfAPI" # API Name
+                                  path: "/perfapi/2.1.1/perf2"
+                                  prodClusterName: "clusterProd_cc-envoy_PerfAPI2.1.1" # Cluster Name
+                                  sandClusterName: ""
+                                  vHost: "cc-envoy"
+                                  version: "2.1.1"
+                                disable_request_body_buffering: true
+                            envoy.filters.http.ratelimit:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimitPerRoute"
+                              vh_rate_limits: INCLUDE
+                        - name: PerfAPI
+                          match:
+                            safe_regex:
+                              google_re2: {}
+                              regex: "^/perfapi/2.1.1/perf3[/]{0,1}"
+                            headers:
+                              - name: ":method"
+                                string_match:
+                                  safe_regex:
+                                    google_re2: {}
+                                    regex: "^GET|POST|OPTIONS$"
+                          route:
+                            cluster_header: x-cluster-header
+                            auto_host_rewrite: true
+                            regex_rewrite:
+                              pattern:
+                                google_re2: {}
+                                regex: "^/perfapi/2.1.1/perf3[/]{0,1}"
+                              substitution: "/perf/api/v3/perf"
+                            timeout: 60s
+                            idle_timeout: 300s
+                            upgrade_configs:
+                              - upgrade_type: websocket
+                                enabled: false
+                            cors:
+                              allow_methods: "GET, PUT, POST, DELETE, PATCH, OPTIONS"
+                              allow_headers: "authorization, Access-Control-Allow-Origin, Content-Type, SOAPAction, apikey, testKey, Internal-Key"
+                              allow_credentials: false
+                              allow_origin_string_match:
+                                - safe_regex:
+                                    google_re2: {}
+                                    regex: ".*"
+                            rate_limits:
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - generic_key:
+                                      descriptor_key: "vhost"
+                                      descriptor_value: "cc-envoy"
+                                  - generic_key:
+                                      descriptor_key: "resource"
+                                      descriptor_value: "/perfapi/2.1.1/perf3"
+                                  - request_headers:
+                                      descriptor_key: "method"
+                                      header_name: ":method" # Special change here for HTTP method
+                                  - generic_key:
+                                      descriptor_key: "policy"
+                                      descriptor_value: "5MPerMin"
+                                  - request_headers:
+                                      descriptor_key: "condition"
+                                      header_name: "x-ratelimit-api-policy"
+                          decorator:
+                            operation: "cc-envoy:^/perfapi/2.1.1/perf3[/]{0,1}"
+                          typed_per_filter_config:
+                            envoy.filters.http.lua:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.LuaPerRoute"
+                              disabled: true
+                            envoy.filters.http.ext_authz:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute"
+                              check_settings:
+                                context_extensions:
+                                  basePath: "/perfapi/2.1.1"
+                                  method: "GET POST"
+                                  name: "PerfAPI" # API Name
+                                  path: "/perfapi/2.1.1/perf3"
+                                  prodClusterName: "clusterProd_cc-envoy_PerfAPI2.1.1" # Cluster Name
+                                  sandClusterName: ""
+                                  vHost: "cc-envoy"
+                                  version: "2.1.1"
+                                disable_request_body_buffering: true
+                            envoy.filters.http.ratelimit:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimitPerRoute"
+                              vh_rate_limits: INCLUDE
+                        - name: PerfAPI
+                          match:
+                            safe_regex:
+                              google_re2: {}
+                              regex: "^/perfapi/2.1.1/perf3/([^/]+)[/]{0,1}"
+                            headers:
+                              - name: ":method"
+                                string_match:
+                                  safe_regex:
+                                    google_re2: {}
+                                    regex: "^GET|OPTIONS$"
+                          route:
+                            cluster_header: x-cluster-header
+                            auto_host_rewrite: true
+                            regex_rewrite:
+                              pattern:
+                                google_re2: {}
+                                regex: "^/perfapi/2.1.1/perf3/([^/]+)[/]{0,1}"
+                              substitution: "/perf/v3/perf/\\1"
+                            timeout: 60s
+                            idle_timeout: 300s
+                            upgrade_configs:
+                              - upgrade_type: websocket
+                                enabled: false
+                            cors:
+                              allow_methods: "GET, PUT, POST, DELETE, PATCH, OPTIONS"
+                              allow_headers: "authorization, Access-Control-Allow-Origin, Content-Type, SOAPAction, apikey, testKey, Internal-Key"
+                              allow_credentials: false
+                              allow_origin_string_match:
+                                - safe_regex:
+                                    google_re2: {}
+                                    regex: ".*"
+                            rate_limits:
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - generic_key:
+                                      descriptor_key: "vhost"
+                                      descriptor_value: "cc-envoy"
+                                  - generic_key:
+                                      descriptor_key: "resource"
+                                      descriptor_value: "/perfapi/2.1.1/perf3/{Id}"
+                                  - request_headers:
+                                      descriptor_key: "method"
+                                      header_name: ":method" # Special change here for HTTP method
+                                  - generic_key:
+                                      descriptor_key: "policy"
+                                      descriptor_value: "5MPerMin"
+                                  - request_headers:
+                                      descriptor_key: "condition"
+                                      header_name: "x-ratelimit-api-policy"
+                          decorator:
+                            operation: "cc-envoy:^/perfapi/2.1.1/perf3/([^/]+)[/]{0,1}"
+                          typed_per_filter_config:
+                            envoy.filters.http.lua:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.LuaPerRoute"
+                              disabled: true
+                            envoy.filters.http.ext_authz:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute"
+                              check_settings:
+                                context_extensions:
+                                  basePath: "/perfapi/2.1.1"
+                                  method: "GET"
+                                  name: "PerfAPI" # API Name
+                                  path: "/perfapi/2.1.1/perf3"
                                   prodClusterName: "clusterProd_cc-envoy_PerfAPI2.1.1" # Cluster Name
                                   sandClusterName: ""
                                   vHost: "cc-envoy"
@@ -1052,7 +1348,7 @@ static_resources:
                                     google_re2: {}
                                     regex: ".*"
                           decorator:
-                            operation: "non-ratelimit:^/nonratelimitactions/1.1.1/non[/]{0,1}"
+                            operation: "cc-envoy:^/nonratelimitactions/1.1.1/non[/]{0,1}"
                           typed_per_filter_config:
                             envoy.filters.http.lua:
                               "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.LuaPerRoute"
@@ -1065,15 +1361,15 @@ static_resources:
                                   method: "GET"
                                   name: "PeNoRateLimitActionsts" # API Name
                                   path: "/nonratelimitactions/1.1.1/non"
-                                  prodClusterName: "clusterProd_non-ratelimit_NoRateLimitActions1.1.1" # Cluster Name
+                                  prodClusterName: "clusterProd_cc-envoy_NoRateLimitActions1.1.1" # Cluster Name
                                   sandClusterName: ""
-                                  vHost: "non-ratelimit"
+                                  vHost: "cc-envoy"
                                   version: "1.1.1"
                                 disable_request_body_buffering: true
                             envoy.filters.http.ratelimit:
                               "@type": "type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimitPerRoute"
                               vh_rate_limits: IGNORE # Ignore Vhost rate limits
-                        - name: NonRateLimit
+                        - name: NoRateLimitActions
                           match:
                             safe_regex:
                               google_re2: {}
@@ -1106,7 +1402,7 @@ static_resources:
                                     google_re2: {}
                                     regex: ".*"
                           decorator:
-                            operation: "non-ratelimit:^/nonratelimitactions/1.1.1/non/([^/]+)[/]{0,1}"
+                            operation: "cc-envoy:^/nonratelimitactions/1.1.1/non/([^/]+)[/]{0,1}"
                           typed_per_filter_config:
                             envoy.filters.http.lua:
                               "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.LuaPerRoute"
@@ -1119,9 +1415,9 @@ static_resources:
                                   method: "GET"
                                   name: "PeNoRateLimitActionsts" # API Name
                                   path: "/nonratelimitactions/1.1.1/non"
-                                  prodClusterName: "clusterProd_non-ratelimit_NoRateLimitActions1.1.1" # Cluster Name
+                                  prodClusterName: "clusterProd_cc-envoyt_NoRateLimitActions1.1.1" # Cluster Name
                                   sandClusterName: ""
-                                  vHost: "non-ratelimit"
+                                  vHost: "cc-envoy"
                                   version: "1.1.1"
                                 disable_request_body_buffering: true
                             envoy.filters.http.ratelimit:

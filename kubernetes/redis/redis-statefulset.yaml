@@ -36,6 +36,7 @@ spec:
       containers:
         - name: redis-cluster
           image: redis:7.0.4
+          # image: redis:6.2.7
           imagePullPolicy: "IfNotPresent"
           securityContext:
             runAsNonRoot: true
@@ -80,8 +81,12 @@ spec:
                 - /scripts/ping_readiness_local.sh
                 - "1"
           resources:
-            limits: {}
-            requests: {}
+            requests:
+              memory: "500Mi"
+              cpu: "500m"
+            limits:
+              memory: "500Mi"
+              cpu: "500m"
           volumeMounts:
             - name: redis-data
               mountPath: /data

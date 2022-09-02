@@ -6,6 +6,7 @@ metadata:
   name: ratelimit
 spec:
   type: ClusterIP
+  clusterIP: None
   selector:
     app: ratelimit
   ports:

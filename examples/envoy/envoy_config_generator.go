@@ -45,40 +45,6 @@ var routeTemp = `
                                 - safe_regex:
                                     google_re2: {}
                                     regex: ".*"
-                            rate_limits:
-                              - actions:
-                                  - generic_key:
-                                      descriptor_key: "org"
-                                      descriptor_value: "John"
-                                  - request_headers:
-                                      descriptor_key: "application"
-                                      header_name: "x-ratelimit-application"
-                                  - request_headers:
-                                      descriptor_key: "policy"
-                                      header_name: "x-ratelimit-application-policy"
-                              - actions:
-                                  - generic_key:
-                                      descriptor_key: "org"
-                                      descriptor_value: "John"
-                                  - request_headers:
-                                      descriptor_key: "subscription"
-                                      header_name: "x-ratelimit-subscription"
-                                  - request_headers:
-                                      descriptor_key: "policy"
-                                      header_name: "x-ratelimit-subscription-policy"
-                                  - generic_key:
-                                      descriptor_key: "spike"
-                                      descriptor_value: "true"
-                              - actions:
-                                  - generic_key:
-                                      descriptor_key: "org"
-                                      descriptor_value: "John"
-                                  - request_headers:
-                                      descriptor_key: "subscription"
-                                      header_name: "x-ratelimit-subscription"
-                                  - request_headers:
-                                      descriptor_key: "policy"
-                                      header_name: "x-ratelimit-subscription-policy"
                           decorator:
                             operation: "cc-envoy:^/{{.Name}}/{{.Version}}{{.Path}}[/]{0,1}"
                           typed_per_filter_config:
@@ -98,6 +64,9 @@ var routeTemp = `
                                   vHost: "cc-envoy"
                                   version: "{{.Version}}"
                                 disable_request_body_buffering: true
+                            envoy.filters.http.ratelimit:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimitPerRoute"
+                              vh_rate_limits: INCLUDE
                         - name: {{.Name}}
                           match:
                             safe_regex:
@@ -130,40 +99,6 @@ var routeTemp = `
                                 - safe_regex:
                                     google_re2: {}
                                     regex: ".*"
-                            rate_limits:
-                              - actions:
-                                  - generic_key:
-                                      descriptor_key: "org"
-                                      descriptor_value: "John"
-                                  - request_headers:
-                                      descriptor_key: "application"
-                                      header_name: "x-ratelimit-application"
-                                  - request_headers:
-                                      descriptor_key: "policy"
-                                      header_name: "x-ratelimit-application-policy"
-                              - actions:
-                                  - generic_key:
-                                      descriptor_key: "org"
-                                      descriptor_value: "John"
-                                  - request_headers:
-                                      descriptor_key: "subscription"
-                                      header_name: "x-ratelimit-subscription"
-                                  - request_headers:
-                                      descriptor_key: "policy"
-                                      header_name: "x-ratelimit-subscription-policy"
-                                  - generic_key:
-                                      descriptor_key: "spike"
-                                      descriptor_value: "true"
-                              - actions:
-                                  - generic_key:
-                                      descriptor_key: "org"
-                                      descriptor_value: "John"
-                                  - request_headers:
-                                      descriptor_key: "subscription"
-                                      header_name: "x-ratelimit-subscription"
-                                  - request_headers:
-                                      descriptor_key: "policy"
-                                      header_name: "x-ratelimit-subscription-policy"
                           decorator:
                             operation: "cc-envoy:^/{{.Name}}/{{.Version}}{{.Path}}/([^/]+)[/]{0,1}"
                           typed_per_filter_config:
@@ -183,6 +118,9 @@ var routeTemp = `
                                   vHost: "cc-envoy"
                                   version: "{{.Version}}"
                                 disable_request_body_buffering: true
+                            envoy.filters.http.ratelimit:
+                              "@type": "type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimitPerRoute"
+                              vh_rate_limits: INCLUDE
 `
 
 var clusterTemp = `
