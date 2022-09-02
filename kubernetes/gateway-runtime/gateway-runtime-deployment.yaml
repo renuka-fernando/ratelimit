@@ -13,6 +13,17 @@ spec:
         app: gateway-runtime
       annotations: {}
     spec:
+      initContainers:
+        - name: set-envoy-config
+          image: busybox
+          command:
+          - wget
+          - "-O"
+          - "/config-dir/envoy-config.yaml"
+          - https://raw.githubusercontent.com/renuka-fernando/ratelimit/cc-dev/kubernetes/gateway-runtime/envoy/envoy-config.yaml
+          volumeMounts:
+          - name: envoy-config-dir
+            mountPath: "/config-dir"    
       containers:
         - name: cc-envoy
           image: envoyproxy/envoy-alpine:v1.20.3
@@ -27,7 +38,7 @@ spec:
           volumeMounts:
             - mountPath: /etc/envoy/envoy.yaml
               subPath: envoy-config.yaml
-              name: envoy-yaml-vol
+              name: envoy-config-dir
             - mountPath: /etc/cc/security/keystore/mg.pem
               subPath: mg.pem
               name: envoy-certs-vol
@@ -82,9 +93,11 @@ spec:
         #   ports:
         #     - containerPort: 9001 # gRPC
       volumes:
-        - name: envoy-yaml-vol
-          configMap:
-            name: envoy-yaml
+        # - name: envoy-yaml-vol
+        #   configMap:
+        #     name: envoy-yaml
+        - name: envoy-config-dir
+          emptyDir: {}
         - name: envoy-certs-vol
           secret:
             secretName: envoy-certs
