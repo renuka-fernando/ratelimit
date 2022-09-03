@@ -1,8 +1,8 @@
-configMapGenerator:
-  - name: envoy-yaml
-    behavior: create
-    files:
-      - envoy-config.yaml
+# configMapGenerator:
+#   - name: envoy-yaml
+#     behavior: create
+#     files:
+#       - envoy-config.yaml
 
 secretGenerator:
   - name: envoy-certs

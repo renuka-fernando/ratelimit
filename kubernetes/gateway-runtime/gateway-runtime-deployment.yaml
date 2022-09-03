@@ -75,23 +75,23 @@ spec:
                   value: cc-envoy
             failureThreshold: 30
             periodSeconds: 5
-        # - name: cc-ext-auth
-        #   image: renukafernando/envoy-ratelimit-ext-auth:v1
-        #   imagePullPolicy: IfNotPresent
-        #   command: []
-        #   volumeMounts:
-        #     - mountPath: /etc/users.json
-        #       subPath: users.json
-        #       name: users-vol
-        #   resources:
-        #     requests:
-        #       memory: "1000Mi"
-        #       cpu: "1000m"
-        #     limits:
-        #       memory: "1000Mi"
-        #       cpu: "1000m"
-        #   ports:
-        #     - containerPort: 9001 # gRPC
+        - name: cc-ext-auth
+          image: renukafernando/envoy-ratelimit-ext-auth:v1
+          imagePullPolicy: IfNotPresent
+          command: []
+          volumeMounts:
+            - mountPath: /etc/users.json
+              subPath: users.json
+              name: users-vol
+          resources:
+            requests:
+              memory: "1000Mi"
+              cpu: "1000m"
+            limits:
+              memory: "1000Mi"
+              cpu: "1000m"
+          ports:
+            - containerPort: 9001 # gRPC
       volumes:
         # - name: envoy-yaml-vol
         #   configMap:
