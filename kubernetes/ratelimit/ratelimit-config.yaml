@@ -18,8 +18,8 @@ descriptors:
                       - key: condition
                         value: default
                         rate_limit:
-                          unit: minute
-                          requests_per_unit: 20000
+                          unit: minute # CHANGE HERE ......
+                          requests_per_unit: 20000 # CHANGE HERE ............
                       - key: condition
                         value: c1 # we may have to use a UUID instead of C1, C2, ...
                         rate_limit:

@@ -9,4 +9,4 @@ replicas:
   - name: mock-backend
     count: 2
   - name: ratelimit
-    count: 2
+    count: 3
