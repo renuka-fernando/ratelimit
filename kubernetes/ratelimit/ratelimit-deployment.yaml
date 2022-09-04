@@ -49,16 +49,16 @@ spec:
               value: "524288"
             - name: LIMIT_RESPONSE_HEADERS_ENABLED
               value: "false"
-            # - name: GRPC_SERVER_USE_TLS
-            #   value: "true"
-            # - name: GRPC_SERVER_TLS_CERT
-            #   value: "/etc/ratelimit/security/mg.pem"
-            # - name: GRPC_SERVER_TLS_KEY
-            #   value: "/etc/ratelimit/security/mg.key"
-            # - name: GRPC_CLIENT_TLS_CACERT
-            #   value: "/etc/ratelimit/security/mg.pem"
-            # - name: GRPC_CLIENT_TLS_SAN
-            #   value: "localhost"
+            - name: GRPC_SERVER_USE_TLS
+              value: "true"
+            - name: GRPC_SERVER_TLS_CERT
+              value: "/etc/ratelimit/security/mg.pem"
+            - name: GRPC_SERVER_TLS_KEY
+              value: "/etc/ratelimit/security/mg.key"
+            - name: GRPC_CLIENT_TLS_CACERT
+              value: "/etc/ratelimit/security/mg.pem"
+            - name: GRPC_CLIENT_TLS_SAN
+              value: "localhost"
           volumeMounts:
             - mountPath: /data/ratelimit/config/ratelimit-config.yaml
               name: ratelimit-config-vol
