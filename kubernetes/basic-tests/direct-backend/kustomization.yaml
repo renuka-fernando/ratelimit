@@ -1,0 +1,9 @@
+resources:
+  - ../../mock-backend
+
+patchesStrategicMerge:
+  - mock-backend-service.yaml
+
+replicas:
+  - name: mock-backend
+    count: 1

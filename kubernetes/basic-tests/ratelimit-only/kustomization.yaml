@@ -1,0 +1,10 @@
+resources:
+  - ../../ratelimit
+
+patchesStrategicMerge:
+  - ratelimit-service.yaml
+  - ratelimit-deployment.yaml
+
+replicas:
+  - name: ratelimit
+    count: 1

@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ratelimit
+spec:
+  template:
+    spec:
+      containers:
+        - name: ratelimit
+          env:
+            # - name: USE_STATSD
+            #   value: "false" # TODO: false
+            # - name: LOG_LEVEL
+            #   value: info # debug
+            # - name: REDIS_SOCKET_TYPE
+            #   value: tcp
+            # - name: REDIS_TYPE
+            #   value: cluster
+            # - name: REDIS_URL
+            #   value: "redis-cluster:6379"
+            # - name: REDIS_PIPELINE_LIMIT
+            #   value: "8"
+            # - name: REDIS_AUTH
+            #   value: "password123"
+            # - name: RUNTIME_ROOT
+            #   value: /data
+            # - name: RUNTIME_SUBDIRECTORY
+            #   value: ratelimit
+            # - name: RUNTIME_WATCH_ROOT
+            #   value: "false"
+            # - name: LOCAL_CACHE_SIZE_IN_BYTES
+            #   value: "524288"
+            # - name: LIMIT_RESPONSE_HEADERS_ENABLED
+            #   value: "false"
+            # - name: GRPC_SERVER_USE_TLS
+            #   value: "true"
+            # - name: GRPC_SERVER_TLS_CERT
+            #   value: "/etc/ratelimit/security/mg.pem"
+            # - name: GRPC_SERVER_TLS_KEY
+            #   value: "/etc/ratelimit/security/mg.key"
+            - name: GRPC_CLIENT_TLS_CACERT
+              $patch: delete
+              # value: "/etc/ratelimit/security/mg.pem"
+            # - name: GRPC_CLIENT_TLS_SAN
+            #   value: "localhost"

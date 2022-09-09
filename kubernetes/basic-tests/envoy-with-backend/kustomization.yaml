@@ -1,0 +1,19 @@
+configMapGenerator:
+  - name: envoy-yaml
+    behavior: create
+    files:
+      - envoy-config.yaml
+
+resources:
+  - ../../gateway-runtime
+  - ../../mock-backend
+
+patchesStrategicMerge:
+  - gateway-runtime-deployment.yaml
+
+replicas:
+  - name: gateway-runtime
+    count: 1
+  - name: mock-backend
+    count: 1
+

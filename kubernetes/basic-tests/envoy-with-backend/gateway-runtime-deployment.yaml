@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-runtime
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: set-envoy-config
+          $patch: delete
+      containers:
+        - name: cc-envoy
+          image: envoyproxy/envoy-alpine:v1.20.3
+          imagePullPolicy: IfNotPresent
+          args:
+            - "--service-node cc-service-node"
+            - "--service-cluster cc-service-cluster"
+            - "--config-path /etc/envoy/envoy.yaml"
+            - "--concurrency 2" # Concurrency
+            - "--mode serve"
+            - "--log-level info"
+          volumeMounts:
+            - name: envoy-config-dir
+              $patch: delete
+            - mountPath: /etc/envoy/envoy.yaml
+              subPath: envoy-config.yaml
+              name: envoy-yaml-vol
+          resources:
+            requests:
+              memory: "1000Mi"
+              cpu: "1000m"
+            limits:
+              memory: "1000Mi"
+              cpu: "1000m"
+      volumes:
+        - name: envoy-yaml-vol
+          configMap:
+            name: envoy-yaml
+        - name: envoy-config-dir
+          # emptyDir: {}
+          $patch: delete
