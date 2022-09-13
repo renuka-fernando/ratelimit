@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ratelimit
+spec:
+  template:
+    spec:
+      containers:
+        - name: ratelimit
+          env:
+            - name: REDIS_SOCKET_TYPE
+              value: tcp
+            - name: REDIS_TYPE
+              value: single
+            - name: REDIS_URL
+              value: "envoy-rate-limit-poc-new.redis.cache.windows.net:6380"
+            - name: REDIS_AUTH
+              value: ""
+            - name: REDIS_TLS
+              value: "true"

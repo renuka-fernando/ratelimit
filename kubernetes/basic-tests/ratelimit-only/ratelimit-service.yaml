@@ -16,3 +16,7 @@ spec:
       port: 9081
       targetPort: 8081
       protocol: TCP
+    - name: "http-json"
+      port: 9080
+      targetPort: 8080
+      protocol: TCP

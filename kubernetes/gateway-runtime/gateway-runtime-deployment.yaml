@@ -48,10 +48,10 @@ spec:
           resources:
             requests:
               memory: "1000Mi"
-              cpu: "1000m"
+              cpu: "2000m"
             limits:
               memory: "1000Mi"
-              cpu: "1000m"
+              cpu: "2000m"
           ports:
             - containerPort: 8888 # HTTPS port
             - containerPort: 8001 # Admin port

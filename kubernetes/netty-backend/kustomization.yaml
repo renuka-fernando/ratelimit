@@ -1,0 +1,3 @@
+resources:
+  - netty-backend-deployment.yaml
+  - netty-backend-service.yaml

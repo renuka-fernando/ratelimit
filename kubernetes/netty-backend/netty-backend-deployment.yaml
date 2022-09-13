@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: netty-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: netty-backend
+  template:
+    metadata:
+      labels:
+        app: netty-backend
+    spec:
+      containers:
+        - name: netty-backend
+          image: renukafernando/netty-http-echo-service:0.4.6
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              memory: "500Mi"
+              cpu: "500m"
+            limits:
+              memory: "500Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 8688
+          livenessProbe:
+            httpGet:
+              port: 8688
+              path: /ready
+              scheme: HTTP
+            failureThreshold: 30
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              port: 8688
+              path: /ready
+              scheme: HTTP
+            failureThreshold: 30
+            periodSeconds: 5
+      restartPolicy: Always
