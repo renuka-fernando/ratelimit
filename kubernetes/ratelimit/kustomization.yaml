@@ -14,5 +14,5 @@ resources:
   - ratelimit-deployment.yaml
   - ratelimit-service.yaml
 
-patchesStrategicMerge:
-  - ratelimit-azure-redis-patch.yaml
+# patchesStrategicMerge:
+#   - ratelimit-azure-redis-patch.yaml

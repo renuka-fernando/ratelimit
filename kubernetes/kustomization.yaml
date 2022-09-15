@@ -1,12 +1,15 @@
 resources:
   - gateway-runtime
   - ratelimit
-  - mock-backend
+  - netty-backend
+  # - mock-backend
 
 replicas:
   - name: gateway-runtime
     count: 2
-  - name: mock-backend
-    count: 2
+  - name: netty-backend
+    count: 1
+  # - name: mock-backend
+  #   count: 2
   - name: ratelimit
-    count: 3
+    count: 2

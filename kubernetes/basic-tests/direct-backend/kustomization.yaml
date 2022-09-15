@@ -1,9 +1,9 @@
 resources:
-  - ../../mock-backend
+  - ../../netty-backend
 
 patchesStrategicMerge:
-  - mock-backend-service.yaml
+  - netty-backend-service.yaml
 
 replicas:
-  - name: mock-backend
+  - name: netty-backend
     count: 1

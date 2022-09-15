@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: netty-backend
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: netty-backend
@@ -18,11 +18,11 @@ spec:
           imagePullPolicy: IfNotPresent
           resources:
             requests:
-              memory: "500Mi"
-              cpu: "500m"
+              memory: "4Gi"
+              cpu: "2000m"
             limits:
-              memory: "500Mi"
-              cpu: "500m"
+              memory: "4Gi"
+              cpu: "2000m"
           ports:
             - containerPort: 8688
           livenessProbe:

@@ -7,6 +7,7 @@ configMapGenerator:
 resources:
   - ../../gateway-runtime
   - ../../netty-backend
+  - ../../ratelimit
 
 patchesStrategicMerge:
   - gateway-runtime-deployment.yaml
@@ -16,4 +17,6 @@ replicas:
     count: 2
   - name: netty-backend
     count: 1
+  - name: ratelimit
+    count: 2
 

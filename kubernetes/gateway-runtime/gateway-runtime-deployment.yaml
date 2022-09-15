@@ -23,6 +23,11 @@ spec:
               wget -O /config-dir/envoy-config.yaml https://raw.githubusercontent.com/renuka-fernando/ratelimit/cc-dev/kubernetes/gateway-runtime/envoy/envoy-config.yaml;
               sed -i "s/#{RATELIMIT_TIMEOUT_NANOS}#/${RATELIMIT_TIMEOUT_NANOS}/g" /config-dir/envoy-config.yaml
               sed -i "s/#{RATELIMIT_TIMEOUT_SECONDS}#/${RATELIMIT_TIMEOUT_SECONDS}/g" /config-dir/envoy-config.yaml
+          env:
+            - name: RATELIMIT_TIMEOUT_NANOS
+              value: "40000000" # 30 ms
+            - name: RATELIMIT_TIMEOUT_SECONDS
+              value: ""
           volumeMounts:
           - name: envoy-config-dir
             mountPath: "/config-dir"    
@@ -34,14 +39,9 @@ spec:
             - "--service-node cc-service-node"
             - "--service-cluster cc-service-cluster"
             - "--config-path /etc/envoy/envoy.yaml"
-            - "--concurrency 2" # Concurrency
+            - "--concurrency 4" # Concurrency
             - "--mode serve"
             - "--log-level info"
-          env:
-            - name: RATELIMIT_TIMEOUT_NANOS
-              value: "50000000" # 50 ms
-            - name: RATELIMIT_TIMEOUT_SECONDS
-              value: ""
           volumeMounts:
             - mountPath: /etc/envoy/envoy.yaml
               subPath: envoy-config.yaml

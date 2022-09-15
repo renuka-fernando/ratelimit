@@ -25,39 +25,39 @@ static_resources:
     #             socket_address:
     #               address: 127.0.0.1
     #               port_value: 9001
-    # - name: ratelimit
-    #   type: STRICT_DNS
-    #   connect_timeout: 20s
-    #   lb_policy: ROUND_ROBIN
-    #   protocol_selection: USE_CONFIGURED_PROTOCOL
-    #   http2_protocol_options: {}
-    #   load_assignment:
-    #     cluster_name: ratelimit
-    #     endpoints:
-    #       - lb_endpoints:
-    #           - endpoint:
-    #               address:
-    #                 socket_address:
-    #                   address: ratelimit
-    #                   port_value: 8081
-    #   "transport_socket":
-    #     "name": "envoy.transport_sockets.tls"
-    #     "typed_config":
-    #       "@type": "type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext"
-    #       "common_tls_context":
-    #         "tls_params":
-    #             "tls_minimum_protocol_version": "TLSv1_2"
-    #             "tls_maximum_protocol_version": "TLSv1_2"
-    #         "tls_certificates":
-    #           - "certificate_chain":
-    #               "filename": "/etc/cc/security/keystore/mg.pem"
-    #             "private_key":
-    #               "filename": "/etc/cc/security/keystore/mg.key"
-    #         "validation_context":
-    #           "match_subject_alt_names":
-    #             - "exact": "localhost"
-    #           "trusted_ca":
-    #             "filename": "/etc/cc/security/keystore/mg.pem"
+    - name: ratelimit
+      type: STRICT_DNS
+      connect_timeout: 20s
+      lb_policy: ROUND_ROBIN
+      protocol_selection: USE_CONFIGURED_PROTOCOL
+      http2_protocol_options: {}
+      load_assignment:
+        cluster_name: ratelimit
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: ratelimit
+                      port_value: 8081
+      "transport_socket":
+        "name": "envoy.transport_sockets.tls"
+        "typed_config":
+          "@type": "type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext"
+          "common_tls_context":
+            "tls_params":
+                "tls_minimum_protocol_version": "TLSv1_2"
+                "tls_maximum_protocol_version": "TLSv1_2"
+            "tls_certificates":
+              - "certificate_chain":
+                  "filename": "/etc/cc/security/keystore/mg.pem"
+                "private_key":
+                  "filename": "/etc/cc/security/keystore/mg.key"
+            "validation_context":
+              "match_subject_alt_names":
+                - "exact": "localhost"
+              "trusted_ca":
+                "filename": "/etc/cc/security/keystore/mg.pem"
     - name: clusterProd_cc-envoy_PerfAPI2.1.1
       connect_timeout: 20s
       dns_refresh_rate: 5s
@@ -118,24 +118,24 @@ static_resources:
                   #       timeout: 20s
                   #     transport_api_version: V3
                   #     clear_route_cache: true
-                  # - name: envoy.filters.http.ratelimit
-                  #   typed_config:
-                  #     "@type": type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimit
-                  #     domain: default
-                  #     request_type: external
-                  #     stage: 0
-                  #     timeout:
-                  #       # 100ms
-                  #       nanos: 100000000
-                  #       # seconds: 1 # CHANGED THIS TO true FOR TESTING PURPOSE, ratelimiter service accuracy is very poor, this is to verify accuracy.
-                  #     rate_limited_as_resource_exhausted: false
-                  #     failure_mode_deny: false # CHANGED THIS TO true FOR TESTING PURPOSE, count how may requests are timedout
-                  #     enable_x_ratelimit_headers: DRAFT_VERSION_03
-                  #     rate_limit_service:
-                  #       grpc_service:
-                  #         envoy_grpc:
-                  #           cluster_name: ratelimit
-                  #       transport_api_version: V3
+                  - name: envoy.filters.http.ratelimit
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimit
+                      domain: default
+                      request_type: external
+                      stage: 0
+                      timeout:
+                        # 40ms
+                        nanos: 40000000
+                        # seconds: 1 # CHANGED THIS TO true FOR TESTING PURPOSE, ratelimiter service accuracy is very poor, this is to verify accuracy.
+                      rate_limited_as_resource_exhausted: false
+                      failure_mode_deny: false # CHANGED THIS TO true FOR TESTING PURPOSE, count how may requests are timedout
+                      enable_x_ratelimit_headers: DRAFT_VERSION_03
+                      rate_limit_service:
+                        grpc_service:
+                          envoy_grpc:
+                            cluster_name: ratelimit
+                        transport_api_version: V3
                   - name: envoy.filters.http.lua
                     typed_config:
                       "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua"
@@ -152,46 +152,46 @@ static_resources:
                         - "cc-envoy"
                         - "cc-envoy:*"
                       request_headers_to_remove:
-                        # - x-cluster-header
-                        # - x-ratelimit-api-policy
-                        # - x-ratelimit-application
-                        # - x-ratelimit-application-policy
-                        # - x-ratelimit-subscription
-                        # - x-ratelimit-subscription-policy
-                      # rate_limits:
-                      #   - actions:
-                      #       - generic_key:
-                      #           descriptor_key: "org"
-                      #           descriptor_value: "John"
-                      #       - request_headers:
-                      #           descriptor_key: "application"
-                      #           header_name: "x-ratelimit-application"
-                      #       - request_headers:
-                      #           descriptor_key: "policy"
-                      #           header_name: "x-ratelimit-application-policy"
-                      #   - actions:
-                      #       - generic_key:
-                      #           descriptor_key: "org"
-                      #           descriptor_value: "John"
-                      #       - request_headers:
-                      #           descriptor_key: "subscription"
-                      #           header_name: "x-ratelimit-subscription"
-                      #       - request_headers:
-                      #           descriptor_key: "policy"
-                      #           header_name: "x-ratelimit-subscription-policy"
-                      #       - generic_key:
-                      #           descriptor_key: "spike"
-                      #           descriptor_value: "true"
-                      #   - actions:
-                      #       - generic_key:
-                      #           descriptor_key: "org"
-                      #           descriptor_value: "John"
-                      #       - request_headers:
-                      #           descriptor_key: "subscription"
-                      #           header_name: "x-ratelimit-subscription"
-                      #       - request_headers:
-                      #           descriptor_key: "policy"
-                      #           header_name: "x-ratelimit-subscription-policy"
+                        - x-cluster-header
+                        - x-ratelimit-api-policy
+                        - x-ratelimit-application
+                        - x-ratelimit-application-policy
+                        - x-ratelimit-subscription
+                        - x-ratelimit-subscription-policy
+                      rate_limits:
+                        - actions:
+                            - generic_key:
+                                descriptor_key: "org"
+                                descriptor_value: "John"
+                            - request_headers:
+                                descriptor_key: "application"
+                                header_name: "x-ratelimit-application"
+                            - request_headers:
+                                descriptor_key: "policy"
+                                header_name: "x-ratelimit-application-policy"
+                        - actions:
+                            - generic_key:
+                                descriptor_key: "org"
+                                descriptor_value: "John"
+                            - request_headers:
+                                descriptor_key: "subscription"
+                                header_name: "x-ratelimit-subscription"
+                            - request_headers:
+                                descriptor_key: "policy"
+                                header_name: "x-ratelimit-subscription-policy"
+                            - generic_key:
+                                descriptor_key: "spike"
+                                descriptor_value: "true"
+                        - actions:
+                            - generic_key:
+                                descriptor_key: "org"
+                                descriptor_value: "John"
+                            - request_headers:
+                                descriptor_key: "subscription"
+                                header_name: "x-ratelimit-subscription"
+                            - request_headers:
+                                descriptor_key: "policy"
+                                header_name: "x-ratelimit-subscription-policy"
                       routes:
                       # Health
                         - name: health
@@ -266,26 +266,26 @@ static_resources:
                                 - safe_regex:
                                     google_re2: {}
                                     regex: ".*"
-                            # rate_limits:
-                            #   - actions:
-                            #       - generic_key:
-                            #           descriptor_key: "org"
-                            #           descriptor_value: "John"
-                            #       - generic_key:
-                            #           descriptor_key: "vhost"
-                            #           descriptor_value: "cc-envoy"
-                            #       - generic_key:
-                            #           descriptor_key: "resource"
-                            #           descriptor_value: "/perfapi/2.1.1/perf"
-                            #       - request_headers:
-                            #           descriptor_key: "method"
-                            #           header_name: ":method" # Special change here for HTTP method
-                            #       - generic_key:
-                            #           descriptor_key: "policy"
-                            #           descriptor_value: "5MPerMin"
-                            #       - request_headers:
-                            #           descriptor_key: "condition"
-                            #           header_name: "x-ratelimit-api-policy"
+                            rate_limits:
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - generic_key:
+                                      descriptor_key: "vhost"
+                                      descriptor_value: "cc-envoy"
+                                  - generic_key:
+                                      descriptor_key: "resource"
+                                      descriptor_value: "/perfapi/2.1.1/perf"
+                                  - request_headers:
+                                      descriptor_key: "method"
+                                      header_name: ":method" # Special change here for HTTP method
+                                  - generic_key:
+                                      descriptor_key: "policy"
+                                      descriptor_value: "5MPerMin"
+                                  - request_headers:
+                                      descriptor_key: "condition"
+                                      header_name: "x-ratelimit-api-policy"
                           decorator:
                             operation: "cc-envoy:^/perfapi/2.1.1/perf[/]{0,1}"
                           typed_per_filter_config:
