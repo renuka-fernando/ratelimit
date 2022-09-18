@@ -1,8 +1,12 @@
 import csv
 
-fileName = "100Users.jtl"
-startTime = 1663051790000
-duration = 60000
+# first timestamp when `head *-measurement.jtl`
+fileName = "100Users-API-level-measurement.jtl"
+headTime = 1663323566692
+
+
+duration = 60000 # 1 min
+startTime = ((headTime // duration) + 1) * duration # next min
 sampleCount = 3
 
 startTime2 = startTime + duration

@@ -1,0 +1,28 @@
+type: api
+version: v4.0.0
+data:
+  name: PerfAPI
+  description: ''
+  context: /perfapi/2.1.1
+  version: 2.1.1
+  provider: admin
+  lifeCycleStatus: CREATED
+  isRevision: false
+  revisionId: 0
+  type: HTTP
+  transport:
+  - http
+  - https
+  tags:
+  - perf
+  policies:
+  - Unlimited
+  visibility: PUBLIC
+  endpointConfig:
+    endpoint_type: http
+    production_endpoints:
+      url: http://mock-backend:9999
+    sandbox_endpoints:
+      url: http://mock-backend:9999
+  endpointImplementationType: ENDPOINT
+  websubSubscriptionConfiguration: null

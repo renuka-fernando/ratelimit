@@ -1,0 +1,16 @@
+configMapGenerator:
+  - name: config-toml
+    behavior: create
+    files:
+      - config.toml
+  - name: logconfig-toml
+    behavior: create
+    files:
+      - log_config.toml
+
+resources:
+  - adapter-deployment.yaml
+  - adapter-keystore-secret.yaml
+  - adapter-truststore-secret.yaml
+  - consul-cert-secret.yaml
+  - adapter-service.yaml

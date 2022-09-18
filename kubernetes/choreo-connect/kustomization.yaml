@@ -1,0 +1,13 @@
+resources:
+  - adapter
+  - gateway-runtime
+  - ../netty-backend
+  - ../ratelimit
+
+replicas:
+  - name: choreo-connect-deployment
+    count: 1
+  - name: netty-backend
+    count: 1
+  - name: ratelimit
+    count: 1

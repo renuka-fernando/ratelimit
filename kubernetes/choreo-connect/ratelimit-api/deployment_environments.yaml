@@ -1,0 +1,7 @@
+type: deployment_environments
+version: v4.0.0
+data:
+ -
+   displayOnDevportal: true
+   deploymentEnvironment: Default
+   deploymentVhost: cc-envoy

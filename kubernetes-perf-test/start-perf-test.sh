@@ -1,4 +1,4 @@
-USERS_COUNT=500
+USERS_COUNT=1000
 
 cd ~/apache-jmeter-5.5/bin/
 CC_IP=10.224.1.2

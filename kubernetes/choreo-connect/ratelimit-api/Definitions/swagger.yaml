@@ -1,0 +1,45 @@
+swagger: "2.0"
+host: http://mock-backend:9999
+basePath: /perfapi/2.1.1
+info:
+  title: Perf API
+  version: 2.1.1
+
+x-wso2-basePath: /perfapi/2.1.1
+x-wso2-production-endpoints:
+  urls:
+    - http://mock-backend:9999
+
+paths:
+  /perf:
+    post:
+      consumes:
+      - application/json
+      operationId: perf
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: successful operation
+      security:
+      - petstore_auth:
+        - write:pets
+        - read:pets
+      summary: Add a new pet to the store
+
+schemes:
+- https
+- http
+
+securityDefinitions:
+  api_key:
+    in: header
+    name: api_key
+    type: apiKey
+  petstore_auth:
+    authorizationUrl: https://petstore.swagger.io/oauth/authorize
+    flow: implicit
+    scopes:
+      read:pets: read your pets
+      write:pets: modify pets in your account
+    type: oauth2

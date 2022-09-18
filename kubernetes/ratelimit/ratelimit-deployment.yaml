@@ -71,11 +71,11 @@ spec:
               subPath: mg.key
           resources:
             requests:
-              memory: "500Mi"
-              cpu: "500m"
+              memory: "1Gi"
+              cpu: "2000m"
             limits:
-              memory: "500Mi"
-              cpu: "500m"
+              memory: "1Gi"
+              cpu: "2000m"
           ports:
             - containerPort: 8081 # gRPC
             - containerPort: 8080 # HTTP JSON

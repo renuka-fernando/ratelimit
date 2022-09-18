@@ -1,0 +1,13 @@
+configMapGenerator:
+  - name: log4j2
+    behavior: create
+    files:
+      - log4j2.properties
+
+resources:
+  - choreo-connect-deployment.yaml
+  - enforcer-keystore-secret.yaml
+  - enforcer-truststore-secret.yaml
+  - router-keystore-secret.yaml
+  - router-truststore-secret.yaml
+  - choreo-connect-service.yaml
