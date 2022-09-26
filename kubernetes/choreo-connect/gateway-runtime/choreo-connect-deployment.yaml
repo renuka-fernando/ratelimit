@@ -90,8 +90,10 @@ spec:
               command: [ "sh", "check_health.sh" ]
             initialDelaySeconds: 5
             periodSeconds: 5
+
         - name: choreo-connect-router
           image: renukafernando/choreo-connect-router:1.1.0-ratelimit-patch
+          # image: wso2/choreo-connect-router:1.1.0
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - mountPath: /home/wso2/security/keystore

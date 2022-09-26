@@ -31,11 +31,11 @@ spec:
   selector:
     app: choreo-connect-deployment
   ports:
-    - name: "http-routeradmin"
-      port: 9000
-      targetPort: 9000
-      protocol: TCP
+    # - name: "http-routeradmin"
+    #   port: 9000
+    #   targetPort: 9000
+    #   protocol: TCP
     - name: "https-router"
-      port: 9095
+      port: 9195
       targetPort: 9095
       protocol: TCP

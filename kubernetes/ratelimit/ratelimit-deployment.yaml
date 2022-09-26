@@ -35,8 +35,10 @@ spec:
               # value: redis:6379 # TODO: update service name
               # value: "mymaster,cc-redis-node-0:26379,cc-redis-node-1:26379" # TODO: update service name
               value: "redis-cluster:6379"
+            - name: REDIS_PIPELINE_WINDOW
+              value: "1ms"
             - name: REDIS_PIPELINE_LIMIT
-              value: "8"
+              value: "0"
             - name: REDIS_AUTH
               value: "password123"
             - name: RUNTIME_ROOT

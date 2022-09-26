@@ -9,6 +9,9 @@ kubectl exec -it redis-cluster-0 -- redis-cli --cluster create $(kubectl get pod
 ### With one API
 # k apply -k ~/git/ratelimit/kubernetes/basic-tests/ratelimit-with-one-api
 
+### With gRPC service
+# k apply -k ~/git/ratelimit/kubernetes/basic-tests/ratelimit-only
+
 ### With Choreo Connect
 k apply -k ~/git/ratelimit/kubernetes/choreo-connect
 

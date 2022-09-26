@@ -18,7 +18,7 @@ descriptors:
                       - key: condition
                         value: default
                         rate_limit:
-                          unit: minute # CHANGE HERE ......
+                          unit: minute # CHANGE HERE ...... # RENUKA: Use this for all tests
                           requests_per_unit: 20000 # CHANGE HERE ............
                       - key: condition
                         value: c1 # we may have to use a UUID instead of C1, C2, ...
@@ -92,7 +92,7 @@ descriptors:
                         value: default
                         rate_limit:
                           unit: minute
-                          requests_per_unit: 5000000
+                          requests_per_unit: 5000000 # 1000 # 5000000 # RENUKA: Use this for all tests
 
       # Subscription level
       - key: subscription # Sends from ext auth service as a header

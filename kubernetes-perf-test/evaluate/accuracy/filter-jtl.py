@@ -1,12 +1,17 @@
 import csv
+import sys
 
 # first timestamp when `head *-measurement.jtl`
-fileName = "100Users-API-level-measurement.jtl"
-headTime = 1663323566692
+fileName = sys.argv[1]
 
+csvFile = csv.reader(open(fileName),delimiter=',')
+_ = next(csvFile)
+firstRow = next(csvFile)
+headTime = int(firstRow[0])
 
 duration = 60000 # 1 min
 startTime = ((headTime // duration) + 1) * duration # next min
+startTime = startTime - 5000 # reduce 5 seconds
 sampleCount = 3
 
 startTime2 = startTime + duration

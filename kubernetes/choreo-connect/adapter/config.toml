@@ -14,7 +14,7 @@ enableXRatelimitHeaders = 1
 
   [ratelimit.timeout]
   seconds = 0
-  nanos = 40000000
+  nanos = 80000000
 
 
 [adapter]

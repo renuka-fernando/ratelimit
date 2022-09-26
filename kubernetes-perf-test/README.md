@@ -83,5 +83,5 @@ rm 1000Users.jtl filter* print-count.sh startTime.js
 [Check](./evaluate)
 
 ```
-java -jar jtl-splitter-0.4.6-SNAPSHOT.jar -t 5 -s -p -f 1000Users.jtl
+java -jar jtl-splitter-0.4.6-SNAPSHOT.jar -t 5 -s -p -f 1000Users-API-level.jtl
 ```

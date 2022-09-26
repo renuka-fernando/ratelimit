@@ -218,6 +218,9 @@ static_resources:
                       rate_limited_as_resource_exhausted: false
                       failure_mode_deny: false
                       enable_x_ratelimit_headers: DRAFT_VERSION_03
+                      timeout:
+                        nanos: 20000000
+                        # seconds: 10
                       rate_limit_service:
                         grpc_service:
                           envoy_grpc:
