@@ -75,6 +75,18 @@ func createLimiter(srv server.Server, s settings.Settings, localCache *freecache
 	}
 }
 
+func getConfigurationImpl(s settings.Settings) config.RateLimitConfigLoader {
+	switch s.ConfigType {
+	case "FILE":
+		return config.NewRateLimitConfigLoaderImpl()
+	case "GRPC_XDS_SOTW":
+		return config.NewRateLimitXdsGrpcConfigLoaderImpl(s)
+	default:
+		logger.Fatalf("Invalid setting for ConfigType: %s", s.ConfigType)
+		panic("This line should not be reachable")
+	}
+}
+
 func (runner *Runner) Run() {
 	s := runner.settings
 	if s.TracingEnabled {
@@ -119,7 +131,7 @@ func (runner *Runner) Run() {
 	service := ratelimit.NewService(
 		srv.Runtime(),
 		createLimiter(srv, s, localCache, runner.statsManager),
-		config.NewRateLimitConfigLoaderImpl(),
+		getConfigurationImpl(s),
 		runner.statsManager,
 		s.RuntimeWatchRoot,
 		utils.NewTimeSourceImpl(),

@@ -10,6 +10,7 @@ require (
 	github.com/golang/mock v1.4.4
 	github.com/golang/protobuf v1.5.2
 	github.com/gorilla/mux v1.7.4-0.20191121170500-49c01487a141
+	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/kavu/go_reuseport v1.2.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/lyft/goruntime v0.3.0
@@ -19,6 +20,7 @@ require (
 	github.com/stretchr/testify v1.7.1
 	golang.org/x/net v0.0.0-20220909164309-bea034e7d591
 	google.golang.org/grpc v1.45.0
+	google.golang.org/protobuf v1.28.0
 	gopkg.in/yaml.v2 v2.3.0
 )
 
@@ -31,7 +33,6 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/internal/retry v1.6.3 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/genproto v0.0.0-20211118181313-81c1377c94b1 // indirect
-	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
 )
 
