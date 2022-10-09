@@ -39,6 +39,7 @@ type service struct {
 	runtime                     loader.IFace
 	configLock                  sync.RWMutex
 	configLoader                config.RateLimitConfigLoader
+	configLoadEvent             <-chan *config.RateLimitConfigEvent
 	config                      config.RateLimitConfig
 	runtimeUpdateEvent          chan int
 	cache                       limiter.RateLimitCache
@@ -53,18 +54,6 @@ type service struct {
 }
 
 func (this *service) reloadConfig(statsManager stats.Manager) {
-	defer func() {
-		if e := recover(); e != nil {
-			configError, ok := e.(config.RateLimitConfigError)
-			if !ok {
-				panic(e)
-			}
-
-			this.stats.ConfigLoadError.Inc()
-			logger.Errorf("error loading new configuration from runtime: %s", configError.Error())
-		}
-	}()
-
 	files := []config.RateLimitConfigToLoad{}
 	snapshot := this.runtime.Snapshot()
 	for _, key := range snapshot.Keys() {
@@ -75,24 +64,49 @@ func (this *service) reloadConfig(statsManager stats.Manager) {
 		files = append(files, config.RateLimitConfigToLoad{key, snapshot.Get(key)})
 	}
 
-	rlSettings := settings.NewSettings()
-	newConfig := this.configLoader.Load(files, statsManager, rlSettings.MergeDomainConfigurations)
-	this.stats.ConfigLoadSuccess.Inc()
+	// rlSettings := settings.NewSettings()
+	// newConfig := this.configLoader.Load(files, statsManager, rlSettings.MergeDomainConfigurations)
+	// this.configChan <- newConfig
+}
 
-	this.configLock.Lock()
-	this.config = newConfig
-	this.globalShadowMode = rlSettings.GlobalShadowMode
+func (this *service) setConfigFromEvent() {
+	for event := range this.configLoadEvent {
+		if len(this.configLoadEvent) != 0 {
+			logger.Debugf("skipping intermediate config, since a new config is available. Intermediate config: %v", event)
+			continue
+		}
 
-	if rlSettings.RateLimitResponseHeadersEnabled {
-		this.customHeadersEnabled = true
+		if event.Err != nil {
+			configError, ok := event.Err.(config.RateLimitConfigError)
+			if !ok {
+				panic(event.Err)
+			}
 
-		this.customHeaderLimitHeader = rlSettings.HeaderRatelimitLimit
+			this.stats.ConfigLoadError.Inc()
+			logger.Errorf("error loading new configuration: %s", configError.Error())
+		}
 
-		this.customHeaderRemainingHeader = rlSettings.HeaderRatelimitRemaining
+		rlSettings := settings.NewSettings()
 
-		this.customHeaderResetHeader = rlSettings.HeaderRatelimitReset
+		// TODO: (renuka) if the rate limit server get high load of should rate limit requests,
+		// the load time of new configuration will be high
+		this.configLock.Lock()
+		this.config = event.Config
+		this.globalShadowMode = rlSettings.GlobalShadowMode
+
+		if rlSettings.RateLimitResponseHeadersEnabled {
+			this.customHeadersEnabled = true
+
+			this.customHeaderLimitHeader = rlSettings.HeaderRatelimitLimit
+
+			this.customHeaderRemainingHeader = rlSettings.HeaderRatelimitRemaining
+
+			this.customHeaderResetHeader = rlSettings.HeaderRatelimitReset
+		}
+		this.configLock.Unlock()
+		this.stats.ConfigLoadSuccess.Inc()
+		logger.Info("successfully loaded new ratelimit configuration")
 	}
-	this.configLock.Unlock()
 }
 
 type serviceError string
@@ -320,6 +334,7 @@ func NewService(runtime loader.IFace, cache limiter.RateLimitCache,
 		configLock:         sync.RWMutex{},
 		configLoader:       configLoader,
 		config:             nil,
+		configLoadEvent:    configLoader.InitAndWatch(statsManager),
 		runtimeUpdateEvent: make(chan int),
 		cache:              cache,
 		stats:              statsManager.NewServiceStats(),
@@ -328,18 +343,20 @@ func NewService(runtime loader.IFace, cache limiter.RateLimitCache,
 		customHeaderClock:  clock,
 	}
 
-	runtime.AddUpdateCallback(newService.runtimeUpdateEvent)
+	go newService.setConfigFromEvent()
 
-	newService.reloadConfig(statsManager)
-	go func() {
-		// No exit right now.
-		for {
-			logger.Debugf("waiting for runtime update")
-			<-newService.runtimeUpdateEvent
-			logger.Debugf("got runtime update and reloading config")
-			newService.reloadConfig(statsManager)
-		}
-	}()
+	// runtime.AddUpdateCallback(newService.runtimeUpdateEvent)
+
+	// newService.reloadConfig(statsManager)
+	// go func() {
+	// 	// No exit right now.
+	// 	for {
+	// 		logger.Debugf("waiting for runtime update")
+	// 		<-newService.runtimeUpdateEvent
+	// 		logger.Debugf("got runtime update and reloading config")
+	// 		newService.reloadConfig(statsManager)
+	// 	}
+	// }()
 
 	return newService
 }

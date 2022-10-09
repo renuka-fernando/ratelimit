@@ -373,7 +373,9 @@ func NewRateLimitConfigImpl(
 	return ret
 }
 
-type rateLimitConfigLoaderImpl struct{}
+type rateLimitConfigLoaderImpl struct {
+	confLoadEvent chan *RateLimitConfigEvent
+}
 
 func (this *rateLimitConfigLoaderImpl) Load(
 	configs []RateLimitConfigToLoad, statsManager stats.Manager, mergeDomainConfigs bool) RateLimitConfig {
@@ -381,7 +383,14 @@ func (this *rateLimitConfigLoaderImpl) Load(
 	return NewRateLimitConfigImpl(configs, statsManager, mergeDomainConfigs)
 }
 
+func (this *rateLimitConfigLoaderImpl) InitAndWatch(statsManager stats.Manager) <-chan *RateLimitConfigEvent {
+
+	return this.confLoadEvent
+}
+
 // @return a new default config loader implementation.
 func NewRateLimitConfigLoaderImpl() RateLimitConfigLoader {
-	return &rateLimitConfigLoaderImpl{}
+	loader := &rateLimitConfigLoaderImpl{}
+	loader.confLoadEvent = make(chan *RateLimitConfigEvent)
+	return loader
 }

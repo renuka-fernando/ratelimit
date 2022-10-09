@@ -39,6 +39,11 @@ type RateLimitConfig interface {
 	GetLimit(ctx context.Context, domain string, descriptor *pb_struct.RateLimitDescriptor) *RateLimit
 }
 
+type RateLimitConfigEvent struct {
+	Config RateLimitConfig
+	Err    error
+}
+
 // Information for a config file to load into the aggregate config.
 type RateLimitConfigToLoad struct {
 	Name      string
@@ -54,4 +59,7 @@ type RateLimitConfigLoader interface {
 	// @return a new configuration.
 	// @throws RateLimitConfigError if the configuration could not be created.
 	Load(configs []RateLimitConfigToLoad, statsManager stats.Manager, mergeDomainConfigs bool) RateLimitConfig
+
+	// Initialize configuration loading and watch (or poll) for configuration updates
+	InitAndWatch(statsManager stats.Manager) <-chan *RateLimitConfigEvent
 }

@@ -5,10 +5,10 @@ import (
 	"io"
 
 	core "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
-	pb_struct "github.com/envoyproxy/go-control-plane/envoy/extensions/common/ratelimit/v3"
 	discovery "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v3"
 	"github.com/envoyproxy/ratelimit/src/settings"
 	"github.com/envoyproxy/ratelimit/src/stats"
+	"github.com/ghodss/yaml"
 	"github.com/golang/protobuf/ptypes/any"
 	grpc_retry "github.com/grpc-ecosystem/go-grpc-middleware/retry"
 	logger "github.com/sirupsen/logrus"
@@ -30,6 +30,7 @@ const (
 
 type rateLimitXdsGrpcConfigLoader struct {
 	s                 settings.Settings
+	statsManager      stats.Manager
 	xdsStream         rls_svc_v3.RateLimitConfigDiscoveryService_StreamRlsConfigsClient
 	lastAckedResponse *discovery.DiscoveryResponse
 	// TODO: (renuka) lastAckedResponse and lastReceivedResponse are equal
@@ -37,6 +38,9 @@ type rateLimitXdsGrpcConfigLoader struct {
 	// If a connection error occurs, true event would be returned
 	connectionFaultChannel chan bool
 	// streamConfChannel chan
+
+	// configLock sync.RWMutex
+	configLoadEvent chan *RateLimitConfigEvent
 }
 
 func (l *rateLimitXdsGrpcConfigLoader) Load(
@@ -44,16 +48,40 @@ func (l *rateLimitXdsGrpcConfigLoader) Load(
 	return &RateLimitConfigXds{}
 }
 
-type RateLimitConfigXds struct{}
-
-// Dump implements RateLimitConfig
-func (rlc *RateLimitConfigXds) Dump() string {
-	return "FOOO: impl xds"
+func (l *rateLimitXdsGrpcConfigLoader) InitAndWatch(statsManager stats.Manager) <-chan *RateLimitConfigEvent {
+	go l.initXdsClient()
+	return l.configLoadEvent
 }
 
-// GetLimit implements RateLimitConfig
-func (rlc *RateLimitConfigXds) GetLimit(ctx context.Context, domain string, descriptor *pb_struct.RateLimitDescriptor) *RateLimit {
-	return &RateLimit{}
+type RateLimitConfigXds struct {
+	rateLimitConfigImpl
+}
+
+// // Dump implements RateLimitConfig
+// func (rlc *RateLimitConfigXds) Dump() string {
+// 	return "FOOO: impl xds"
+// }
+
+// // GetLimit implements RateLimitConfig
+// func (rlc *RateLimitConfigXds) GetLimit(ctx context.Context, domain string, descriptor *pb_struct.RateLimitDescriptor) *RateLimit {
+// 	return &RateLimit{}
+// }
+
+func newRateLimitConfigXds(statsManager stats.Manager) *RateLimitConfigXds {
+	conf := &RateLimitConfigXds{}
+	conf.domains = make(map[string]*rateLimitDomain, 0)
+	conf.statsManager = statsManager
+	return conf
+}
+
+func (rlc *RateLimitConfigXds) loadConfigTemp(xdsRlsConf *rls_conf_v3.RateLimitConfig) {
+	// TODO: (renuka) loop xdsRlsConf, have to upadte proto
+	byteConf, err := yaml.Marshal(xdsRlsConf)
+	if err != nil {
+		logger.Errorf("Error config: %s", err.Error())
+	}
+	conf := RateLimitConfigToLoad{Name: "def-xds.yaml", FileBytes: string(byteConf)}
+	rlc.loadConfig(conf)
 }
 
 func (l *rateLimitXdsGrpcConfigLoader) getGrpcConnection() (*grpc.ClientConn, error) {
@@ -120,6 +148,12 @@ func (l *rateLimitXdsGrpcConfigLoader) applyConfigs(resources []*any.Any) {
 		}
 
 		logger.Info("RENUKA TEST: %v", config)
+		rlsConf := newRateLimitConfigXds(l.statsManager)
+		rlsConf.loadConfigTemp(config)
+		// l.configLock.Lock()
+		// l.rlsConf = rlsConf
+		// l.configLock.Unlock()
+		l.configLoadEvent <- &RateLimitConfigEvent{Config: rlsConf}
 	}
 	l.ack()
 }
@@ -197,9 +231,9 @@ func (l *rateLimitXdsGrpcConfigLoader) initXdsClient() {
 	}
 }
 
-func NewRateLimitXdsGrpcConfigLoaderImpl(s settings.Settings) RateLimitConfigLoader {
-	loader := &rateLimitXdsGrpcConfigLoader{s: s}
+func NewRateLimitXdsGrpcConfigLoaderImpl(s settings.Settings, statsManager stats.Manager) RateLimitConfigLoader {
+	loader := &rateLimitXdsGrpcConfigLoader{s: s, statsManager: statsManager}
 	loader.connectionFaultChannel = make(chan bool)
-	loader.initXdsClient()
+	loader.configLoadEvent = make(chan *RateLimitConfigEvent)
 	return loader
 }
