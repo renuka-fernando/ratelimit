@@ -2,14 +2,19 @@ package config
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	pb_struct "github.com/envoyproxy/go-control-plane/envoy/extensions/common/ratelimit/v3"
 	pb "github.com/envoyproxy/go-control-plane/envoy/service/ratelimit/v3"
+	"github.com/lyft/goruntime/loader"
 	logger "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"gopkg.in/yaml.v2"
 
+	gostats "github.com/lyft/gostats"
+
+	"github.com/envoyproxy/ratelimit/src/settings"
 	"github.com/envoyproxy/ratelimit/src/stats"
 )
 
@@ -374,7 +379,12 @@ func NewRateLimitConfigImpl(
 }
 
 type rateLimitConfigLoaderImpl struct {
-	confLoadEvent chan *RateLimitConfigEvent
+	statsManager       stats.Manager
+	confLoadEvent      chan *RateLimitConfigEvent
+	runtime            loader.IFace
+	runtimeWatchRoot   bool
+	runtimeUpdateEvent chan int
+	rootStatsScope     gostats.Scope
 }
 
 func (this *rateLimitConfigLoaderImpl) Load(
@@ -384,13 +394,87 @@ func (this *rateLimitConfigLoaderImpl) Load(
 }
 
 func (this *rateLimitConfigLoaderImpl) InitAndWatch(statsManager stats.Manager) <-chan *RateLimitConfigEvent {
-
+	this.setupRuntime(settings.NewSettings())
 	return this.confLoadEvent
 }
 
+func (this *rateLimitConfigLoaderImpl) setupRuntime(s settings.Settings) {
+	// TODO: (renuka) moved stats scope from root.runtime to root.ratelimit.runtime <- check this with community, otherwise have to use root store
+	// setup runtime
+	loaderOpts := make([]loader.Option, 0, 1)
+	if s.RuntimeIgnoreDotFiles {
+		loaderOpts = append(loaderOpts, loader.IgnoreDotFiles)
+	} else {
+		loaderOpts = append(loaderOpts, loader.AllowDotFiles)
+	}
+	var err error
+	if s.RuntimeWatchRoot {
+		this.runtime, err = loader.New2(
+			s.RuntimePath,
+			s.RuntimeSubdirectory,
+			this.rootStatsScope.Scope("runtime"),
+			&loader.SymlinkRefresher{RuntimePath: s.RuntimePath},
+			loaderOpts...)
+	} else {
+		directoryRefresher := &loader.DirectoryRefresher{}
+		// Adding loader.Remove to the default set of goruntime's FileSystemOps.
+		directoryRefresher.WatchFileSystemOps(loader.Remove, loader.Write, loader.Create, loader.Chmod)
+
+		this.runtime, err = loader.New2(
+			filepath.Join(s.RuntimePath, s.RuntimeSubdirectory),
+			"config",
+			this.rootStatsScope.Scope("runtime"),
+			directoryRefresher,
+			loaderOpts...)
+	}
+
+	if err != nil {
+		panic(err)
+	}
+
+	this.runtime.AddUpdateCallback(this.runtimeUpdateEvent)
+	go func() {
+		this.reloadConfig(this.statsManager)
+		// No exit right now.
+		for {
+			logger.Debugf("waiting for runtime update")
+			<-this.runtimeUpdateEvent
+			logger.Debugf("got runtime update and reloading config")
+			this.reloadConfig(this.statsManager)
+		}
+	}()
+}
+
+func (this *rateLimitConfigLoaderImpl) reloadConfig(statsManager stats.Manager) {
+	defer func() {
+		if err := recover(); err != nil {
+			this.confLoadEvent <- &RateLimitConfigEvent{Err: err}
+		}
+	}()
+
+	files := []RateLimitConfigToLoad{}
+	snapshot := this.runtime.Snapshot()
+	for _, key := range snapshot.Keys() {
+		if this.runtimeWatchRoot && !strings.HasPrefix(key, "config.") {
+			continue
+		}
+
+		files = append(files, RateLimitConfigToLoad{key, snapshot.Get(key)})
+	}
+
+	rlSettings := settings.NewSettings()
+	newConfig := this.Load(files, statsManager, rlSettings.MergeDomainConfigurations)
+	this.confLoadEvent <- &RateLimitConfigEvent{Config: newConfig}
+}
+
 // @return a new default config loader implementation.
-func NewRateLimitConfigLoaderImpl() RateLimitConfigLoader {
-	loader := &rateLimitConfigLoaderImpl{}
-	loader.confLoadEvent = make(chan *RateLimitConfigEvent)
+func NewRateLimitConfigLoaderImpl(s settings.Settings, statsManager stats.Manager, statsScope gostats.Scope) RateLimitConfigLoader {
+	loader := &rateLimitConfigLoaderImpl{
+		statsManager:       statsManager,
+		runtimeWatchRoot:   s.RuntimeWatchRoot,
+		confLoadEvent:      make(chan *RateLimitConfigEvent),
+		runtimeUpdateEvent: make(chan int),
+		rootStatsScope:     statsScope,
+	}
 	return loader
 }

@@ -41,7 +41,7 @@ type RateLimitConfig interface {
 
 type RateLimitConfigEvent struct {
 	Config RateLimitConfig
-	Err    error
+	Err    any
 }
 
 // Information for a config file to load into the aggregate config.

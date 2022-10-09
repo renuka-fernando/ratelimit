@@ -184,6 +184,10 @@ func (server *server) Scope() gostats.Scope {
 	return server.scope
 }
 
+func (server *server) Store() gostats.Store {
+	return server.store
+}
+
 func (server *server) Runtime() loader.IFace {
 	return server.runtime
 }

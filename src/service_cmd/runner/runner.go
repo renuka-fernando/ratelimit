@@ -75,10 +75,10 @@ func createLimiter(srv server.Server, s settings.Settings, localCache *freecache
 	}
 }
 
-func getConfigurationImpl(s settings.Settings, statsManager stats.Manager) config.RateLimitConfigLoader {
+func getConfigurationImpl(s settings.Settings, statsManager stats.Manager, statsScope gostats.Scope) config.RateLimitConfigLoader {
 	switch s.ConfigType {
 	case "FILE":
-		return config.NewRateLimitConfigLoaderImpl()
+		return config.NewRateLimitConfigLoaderImpl(s, statsManager, statsScope)
 	case "GRPC_XDS_SOTW":
 		return config.NewRateLimitXdsGrpcConfigLoaderImpl(s, statsManager)
 	default:
@@ -131,7 +131,7 @@ func (runner *Runner) Run() {
 	service := ratelimit.NewService(
 		srv.Runtime(),
 		createLimiter(srv, s, localCache, runner.statsManager),
-		getConfigurationImpl(s, runner.statsManager),
+		getConfigurationImpl(s, runner.statsManager, srv.Scope()),
 		runner.statsManager,
 		s.RuntimeWatchRoot,
 		utils.NewTimeSourceImpl(),
