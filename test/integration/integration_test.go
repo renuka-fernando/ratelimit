@@ -95,6 +95,20 @@ func TestBasicConfig(t *testing.T) {
 	})
 }
 
+func TestXdsProviderBasicConfig(t *testing.T) {
+	common.WithMultiRedis(t, []common.RedisConfig{
+		{Port: 6383},
+		{Port: 6380},
+	}, func() {
+		_, cancel := startXdsSotwServer(t)
+		defer cancel()
+		t.Run("WithoutPerSecondRedis", testXdsProviderBasicConfig(t, false, 0))
+		// t.Run("WithPerSecondRedis", testBasicConfig(makeSimpleRedisSettings(6383, 6380, true, 0)))
+		// t.Run("WithoutPerSecondRedisWithLocalCache", testBasicConfig(makeSimpleRedisSettings(6383, 6380, false, 1000)))
+		// t.Run("WithPerSecondRedisWithLocalCache", testBasicConfig(makeSimpleRedisSettings(6383, 6380, true, 1000)))
+	})
+}
+
 func TestBasicConfig_ExtraTags(t *testing.T) {
 	common.WithMultiRedis(t, []common.RedisConfig{
 		{Port: 6383},
