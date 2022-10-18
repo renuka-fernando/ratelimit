@@ -25,7 +25,7 @@ import (
 	grpcStatus "google.golang.org/grpc/status"
 
 	rls_conf_v3 "github.com/envoyproxy/go-control-plane/ratelimit/config/ratelimit/v3"
-	rls_svc_v3 "github.com/envoyproxy/go-control-plane/ratelimit/service/ratelimit/v3"
+	// rls_svc_v3 "github.com/envoyproxy/go-control-plane/ratelimit/service/ratelimit/v3"
 )
 
 const (
@@ -37,8 +37,9 @@ type XdsGrpcSotwProvider struct {
 	loader                config.RateLimitConfigLoader
 	configUpdateEventChan chan ConfigUpdateEvent
 	statsManager          stats.Manager
-	xdsStream             rls_svc_v3.RateLimitConfigDiscoveryService_StreamRlsConfigsClient
-	lastAckedResponse     *discovery.DiscoveryResponse
+	// xdsStream             rls_svc_v3.RateLimitConfigDiscoveryService_StreamRlsConfigsClient
+	xdsStream         discovery.AggregatedDiscoveryService_StreamAggregatedResourcesClient
+	lastAckedResponse *discovery.DiscoveryResponse
 	// TODO: (renuka) lastAckedResponse and lastReceivedResponse are equal
 	lastReceivedResponse *discovery.DiscoveryResponse
 	// If a connection error occurs, true event would be returned
@@ -72,6 +73,7 @@ func (p *XdsGrpcSotwProvider) initXdsClient() {
 			conn.Close()
 		}
 		if !retryEvent { // stop watching
+			logger.Info("Stopping xDS client watch for rate limit configurations")
 			break
 		}
 		conn = p.initializeAndWatch()
@@ -115,8 +117,8 @@ func (p *XdsGrpcSotwProvider) watchConfigs() {
 		if err != nil {
 			logger.Errorf("Failed to receive the discovery response from xDS Configuration Server: %s", err.Error())
 			errStatus, _ := grpcStatus.FromError(err)
-			if errStatus.Code() == codes.Unavailable {
-				logger.Errorf("Connection unavailable. errorCode: %s errorMessage: %s",
+			if errStatus.Code() == codes.Unavailable || errStatus.Code() == codes.Canceled {
+				logger.Errorf("Connection error. errorCode: %s errorMessage: %s",
 					errStatus.Code().String(), errStatus.Message())
 				p.connectionRetryChannel <- true
 				return
@@ -139,7 +141,7 @@ func (p *XdsGrpcSotwProvider) initConnection() (*grpc.ClientConn, error) {
 		logger.Errorf("Error initializing gRPC connection to xDS Configuration Server: %s", err.Error())
 		return nil, err
 	}
-	p.xdsStream, err = rls_svc_v3.NewRateLimitConfigDiscoveryServiceClient(conn).StreamRlsConfigs(context.Background())
+	p.xdsStream, err = discovery.NewAggregatedDiscoveryServiceClient(conn).StreamAggregatedResources(context.Background())
 	if err != nil {
 		logger.Errorf("Error initializing gRPC stream to xDS Configuration Server: %s", err.Error())
 		return nil, err
