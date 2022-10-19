@@ -16,7 +16,7 @@ import (
 	rls_config "github.com/envoyproxy/go-control-plane/ratelimit/config/ratelimit/v3"
 )
 
-func testXdsProviderBasicConfig(t *testing.T, perSecond bool, local_cache_size int) func(*testing.T) {
+func testXdsProviderBasicConfig(perSecond bool, local_cache_size int) func(*testing.T) {
 	s := makeSimpleRedisSettings(6383, 6380, perSecond, local_cache_size)
 	configXdsProvider(&s)
 

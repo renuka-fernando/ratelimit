@@ -102,10 +102,10 @@ func TestXdsProviderBasicConfig(t *testing.T) {
 	}, func() {
 		_, cancel := startXdsSotwServer(t)
 		defer cancel()
-		t.Run("WithoutPerSecondRedis", testXdsProviderBasicConfig(t, false, 0))
-		// t.Run("WithPerSecondRedis", testBasicConfig(makeSimpleRedisSettings(6383, 6380, true, 0)))
-		// t.Run("WithoutPerSecondRedisWithLocalCache", testBasicConfig(makeSimpleRedisSettings(6383, 6380, false, 1000)))
-		// t.Run("WithPerSecondRedisWithLocalCache", testBasicConfig(makeSimpleRedisSettings(6383, 6380, true, 1000)))
+		t.Run("WithoutPerSecondRedis", testXdsProviderBasicConfig(false, 0))
+		t.Run("WithPerSecondRedis", testXdsProviderBasicConfig(true, 0))
+		t.Run("WithoutPerSecondRedisWithLocalCache", testXdsProviderBasicConfig(false, 1000))
+		t.Run("WithPerSecondRedisWithLocalCache", testXdsProviderBasicConfig(true, 1000))
 	})
 }
 
