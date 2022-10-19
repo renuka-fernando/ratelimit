@@ -3,6 +3,7 @@ package provider_test
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	gostats "github.com/lyft/gostats"
@@ -156,9 +157,10 @@ func testMultiDomainXdsConfigUpdate(snapCache cache.SnapshotCache, providerEvent
 
 		config, err := configEvent.GetConfig()
 		assert.Nil(err)
-		assert.Equal(`foo.k1_k2: unit=MINUTE requests_per_unit=10, shadow_mode: false
-bar.k1_k2: unit=MINUTE requests_per_unit=100, shadow_mode: false
-`, config.Dump())
+		assert.Equal([]string{
+			"foo.k1_k2: unit=MINUTE requests_per_unit=10, shadow_mode: false",
+			"bar.k1_k2: unit=MINUTE requests_per_unit=100, shadow_mode: false",
+		}, strings.Split(strings.TrimSuffix(config.Dump(), "\n"), "\n"))
 	}
 }
 
