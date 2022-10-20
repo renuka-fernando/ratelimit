@@ -26,11 +26,20 @@ message RateLimitDescriptor {
 
 // Rate-limit policy model
 message RateLimitPolicy {
-  string unit = 1;
+  string unit = 1; // TODO: (renuka) Keeping the type as string instead of the enum "RateLimitUnit". This should be fixed with issue: #issue No
   uint32 requests_per_unit = 2;
   bool unlimited = 3;
   string name = 4;
   repeated RateLimitReplace replaces = 5;
+}
+
+// Identifies the unit of of time for rate limit.
+enum RateLimitUnit {
+  UNKNOWN = 0;
+  SECOND = 1;
+  MINUTE = 2;
+  HOUR = 3;
+  DAY = 4;
 }
 
 // Rate-limit replace model
