@@ -7,15 +7,18 @@ option java_outer_classname = "RlsConfigProto";
 option java_multiple_files = true;
 option go_package = "github.com/envoyproxy/go-control-plane/ratelimit/config/ratelimit/v3;ratelimitv3";
 
-// [#protodoc-title: Rate Limit Config Discovery Service (RLS Conf DS)]
+// [#protodoc-title: Rate limit server configuration]
 
-// Rate-limit config model
+// Configuration for a single domain
 message RateLimitConfig {
+  // Domain name the descriptors should be applied on
   string domain = 1;
+
+  // List of rate limit descriptors
   repeated RateLimitDescriptor descriptors = 2;
 }
 
-// Rate-limit descriptor model
+// Rate limit descriptor model
 message RateLimitDescriptor {
   string key = 1;
   string value = 2;
@@ -26,23 +29,32 @@ message RateLimitDescriptor {
 
 // Rate-limit policy model
 message RateLimitPolicy {
-  string unit = 1; // TODO: (renuka) Keeping the type as string instead of the enum "RateLimitUnit". This should be fixed with issue: #issue No
+  RateLimitUnit unit = 1;
   uint32 requests_per_unit = 2;
   bool unlimited = 3;
   string name = 4;
   repeated RateLimitReplace replaces = 5;
 }
 
-// Identifies the unit of of time for rate limit.
-enum RateLimitUnit {
-  UNKNOWN = 0;
-  SECOND = 1;
-  MINUTE = 2;
-  HOUR = 3;
-  DAY = 4;
-}
-
 // Rate-limit replace model
 message RateLimitReplace {
   string name = 1;
+}
+
+// Identifies the unit of of time for rate limit.
+enum RateLimitUnit {
+  // The time unit is not known.
+  UNKNOWN = 0;
+
+  // The time unit representing a second.
+  SECOND = 1;
+
+  // The time unit representing a minute.
+  MINUTE = 2;
+
+  // The time unit representing an hour.
+  HOUR = 3;
+
+  // The time unit representing a day.
+  DAY = 4;
 }
