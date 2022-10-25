@@ -1,12 +1,13 @@
 # Example Rate-limit Configuration SotW xDS Server
 
-This is an example of a trivial xDS V3 control plane server similar to the example server in [go-control-plane](https://github.com/envoyproxy/go-control-plane/tree/main/internal/example). It serves Rate limit configuration. You can run the example using the project top-level Makefile, e.g.:
+This is an example of a trivial xDS V3 control plane server similar to the example server in [go-control-plane](https://github.com/envoyproxy/go-control-plane/tree/main/internal/example). It serves sample Rate limit configuration. You can run the example using the project top-level docker-compose-example.yml, e.g.:
 
-```
-$ make example
+```bash
+export CONFIG_TYPE=GRPC_XDS_SOTW
+docker-compose -f docker-compose-example.yml --profile xds-config up --build --remove-orphans
 ```
 
-The Makefile builds the example server and then runs `build/example.sh` which runs both Envoy and the example server. The example server serves a configuration defined in `internal/example/resource.go`. If everything works correctly, you should be able to open a browser to [http://localhost:10000](http://localhost:10000) and see Envoy's website.
+The docker-compose builds and runs the example server along with Rate limit server. The example server serves a configuration defined in [`resource.go`](resource.go). If everything works correctly, you can follow the [examples in project top-level README.md file](../../README.md#examples).
 
 ## Files
 

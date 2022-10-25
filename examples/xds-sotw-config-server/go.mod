@@ -3,7 +3,7 @@ module github.com/envoyproxy/ratelimit/examples/xds-sotw-config-server
 go 1.18
 
 // TODO: (renuka) Remove this replace once, https://github.com/envoyproxy/go-control-plane/pull/598 is merged
-replace github.com/envoyproxy/go-control-plane => github.com/renuka-fernando/go-control-plane v0.0.1
+replace github.com/envoyproxy/go-control-plane => github.com/renuka-fernando/go-control-plane v0.0.2
 
 require (
 	github.com/envoyproxy/go-control-plane v0.10.1
