@@ -51,7 +51,7 @@ services:
       - RUNTIME_WATCH_ROOT=false
 
   envoy-proxy:
-    image: envoyproxy/envoy-dev:latest
+    image: envoyproxy/envoy:v1.23.1
     entrypoint: "/usr/local/bin/envoy"
     command:
       - "--service-node proxy"
@@ -72,7 +72,7 @@ services:
       - "8001:8001"
 
   envoy-mock:
-    image: envoyproxy/envoy-dev:latest
+    image: envoyproxy/envoy:v1.23.1
     entrypoint: "/usr/local/bin/envoy"
     command:
       - "--service-node mock"

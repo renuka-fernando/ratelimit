@@ -50,7 +50,7 @@ static_resources:
                   - name: envoy.filters.http.ratelimit
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimit
-                      domain: rl
+                      domain: default
                       request_type: external
                       stage: 0
                       rate_limited_as_resource_exhausted: true
@@ -71,6 +71,30 @@ static_resources:
                       domains:
                         - "*"
                       routes:
+                        - match:
+                            prefix: /pets/v2/order
+                          route:
+                            cluster: mock
+                            rate_limits:
+                              - actions:
+                                  - generic_key:
+                                      descriptor_key: "org"
+                                      descriptor_value: "John"
+                                  - generic_key:
+                                      descriptor_key: "vhost"
+                                      descriptor_value: "localhost"
+                                  - generic_key:
+                                      descriptor_key: "path"
+                                      descriptor_value: "/pets/v2"
+                                  - generic_key:
+                                      descriptor_key: "method"
+                                      descriptor_value: "ALL"
+                                  - generic_key:
+                                      descriptor_key: "policy"
+                                      descriptor_value: "$_5PerMin"
+                                  - request_headers:
+                                      descriptor_key: "condition"
+                                      header_name: "x-wso2-ratelimit-api-policy"
                         - match:
                             prefix: /test
                           route:
