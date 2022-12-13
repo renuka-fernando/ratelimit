@@ -1,6 +1,7 @@
 name: CI Build and Test for PR
 
 on:
+  push:
   pull_request:
 
 jobs:
