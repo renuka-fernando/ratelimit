@@ -17,6 +17,7 @@
     - [Rate limit definition](#rate-limit-definition)
     - [Replaces](#replaces)
     - [ShadowMode](#shadowmode)
+    - [Including detailed metrics for unspecified values](#including-detailed-metrics-for-unspecified-values)
     - [Examples](#examples)
       - [Example 1](#example-1)
       - [Example 2](#example-2)
@@ -25,6 +26,7 @@
       - [Example 5](#example-5)
       - [Example 6](#example-6)
       - [Example 7](#example-7)
+      - [Example 8](#example-8)
   - [Loading Configuration](#loading-configuration)
     - [File Based Configuration Loading](#file-based-configuration-loading)
     - [xDS Management Server Based Configuration Loading](#xds-management-server-based-configuration-loading)
@@ -239,6 +241,7 @@ descriptors:
       unit: <see below: required>
       requests_per_unit: <see below: required>
     shadow_mode: (optional)
+    detailed_metric: (optional)
     descriptors: (optional block)
       - ... (nested repetition of above)
 ```
@@ -286,6 +289,12 @@ When a block is in ShadowMode all functions of the rate limiting service are exe
 An additional statistic is added to keep track of how many times a key with "shadow_mode" has overridden result.
 
 There is also a Global Shadow Mode
+
+### Including detailed metrics for unspecified values
+
+Setting the `detailed_metric: true` for a descriptor will extend the metrics that are produced. Normally a desriptor that matches a value that is not explicitly listed in the configuration will from a metrics point-of-view be rolled-up into the base entry. This can be probelmatic if you want to have those details available for analysis.
+
+NB! This should only be enabled in situations where the potentially large cardinality of metrics that this can lead to is acceptable.
 
 ### Examples
 
@@ -524,6 +533,43 @@ descriptors:
           unit: second
 ```
 
+#### Example 8
+
+In this example we demonstrate how a descriptor without a specified value is configured to override the default behavior and include the matched-value in the metrics.
+
+Rate limting configuration and tracking works as normally
+
+```
+(key_1, unspecified_value): 10 / sec
+(key_1, unspecified_value2): 10 / sec
+(key_1, value_1): 20 / sec
+```
+
+```yaml
+domain: example8
+descriptors:
+  - key: key1
+    detailed_metric: true
+    rate_limit:
+      unit: minute
+      requests_per_unit: 10
+  - key: key1
+    value: value1
+    rate_limit:
+      unit: minute
+      requests_per_unit: 20
+```
+
+The metrics keys will be the following:
+
+"key1_unspecified_value"
+"key1_unspecified_value2"
+"key1_value1"
+
+rather than the normal
+"key1"
+"key1_value1"
+
 ## Loading Configuration
 
 Rate limit service supports following configuration loading methods. You can define which methods to use by configuring environment variable `CONFIG_TYPE`.
@@ -693,6 +739,8 @@ KEY_VALUE:
 
 - A combination of the key value
 - Nested descriptors would be suffixed in the stats path
+
+The default mode is that the value-part is omitted if the rule that matches is a descriptor without a value. Specifying the `detailed_metric` configuration parameter changes this behavior and creates a unique metric even in this situation.
 
 STAT:
 
