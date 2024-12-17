@@ -75,6 +75,9 @@ type Settings struct {
 	XdsClientBackoffRandomFactor    float64       `envconfig:"XDS_CLIENT_BACKOFF_RANDOM_FACTOR" default:"0.5"`
 	XdsClientBackoffJitter          bool          `envconfig:"XDS_CLIENT_BACKOFF_JITTER" default:"true"`
 
+	// xDS gRPC client options
+	XdsGrpcClientOptionsMaxMsgSizeInBytes int `envconfig:"XDS_GRPC_CLIENT_OPTIONS_MAX_MSG_SIZE_IN_BYTES" default:""`
+
 	// Stats-related settings
 	UseStatsd  bool              `envconfig:"USE_STATSD" default:"true"`
 	StatsdHost string            `envconfig:"STATSD_HOST" default:"localhost"`
